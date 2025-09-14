@@ -34,6 +34,15 @@ class LocationHistoryViewController: UIViewController {
     private var startDate: Date?
     private var endDate: Date?
     
+    // Navigation-style animation properties
+    private var currentMarker: MKAnnotationView?
+    private var routePolyline: MKPolyline?
+    private var animationTimer: Timer?
+    private var isAnimating = false
+    private var animationProgress: Double = 0.0
+    private var animationStartLocation: CLLocationCoordinate2D?
+    private var animationEndLocation: CLLocationCoordinate2D?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -297,6 +306,45 @@ extension LocationHistoryViewController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         guard !(annotation is MKUserLocation) else { return nil }
         
+        // Handle Current Location annotation (for smooth animation)
+        if let currentAnnotation = annotation as? CurrentLocationAnnotation {
+            let identifier = "CurrentLocationAnnotation"
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            
+            if annotationView == nil {
+                annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+                annotationView?.canShowCallout = true
+                
+                // Create a custom view for the current location marker
+                let markerView = UIView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
+                markerView.backgroundColor = .systemRed
+                markerView.layer.cornerRadius = 10
+                markerView.layer.borderWidth = 3
+                markerView.layer.borderColor = UIColor.white.cgColor
+                markerView.layer.shadowColor = UIColor.black.cgColor
+                markerView.layer.shadowOffset = CGSize(width: 0, height: 2)
+                markerView.layer.shadowRadius = 4
+                markerView.layer.shadowOpacity = 0.3
+                
+                // Add pulsing animation
+                let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
+                pulseAnimation.duration = 1.0
+                pulseAnimation.fromValue = 1.0
+                pulseAnimation.toValue = 1.3
+                pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                pulseAnimation.autoreverses = true
+                pulseAnimation.repeatCount = .infinity
+                markerView.layer.add(pulseAnimation, forKey: "pulse")
+                
+                annotationView?.addSubview(markerView)
+                annotationView?.frame = markerView.frame
+            } else {
+                annotationView?.annotation = annotation
+            }
+            
+            return annotationView
+        }
+        
         // Handle Time Machine annotations
         if let timeMachineAnnotation = annotation as? TimeMachineAnnotation {
             let identifier = "TimeMachineAnnotation"
@@ -339,16 +387,30 @@ extension LocationHistoryViewController: MKMapViewDelegate {
         
         return annotationView
     }
+    
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        if let polyline = overlay as? MKPolyline {
+            let renderer = MKPolylineRenderer(polyline: polyline)
+            renderer.strokeColor = .systemBlue
+            renderer.lineWidth = 4.0
+            renderer.lineCap = .round
+            renderer.lineJoin = .round
+            renderer.alpha = 0.8
+            return renderer
+        }
+        return MKOverlayRenderer(overlay: overlay)
+    }
 }
 
 // MARK: - Time Machine Methods
 extension LocationHistoryViewController {
     
     private func setupTimeMachineUI() {
-        // Setup Time Machine controls
+        // Setup Time Machine controls with navigation-style design
         playPauseButton.setTitle("▶️ Play", for: .normal)
         playPauseButton.backgroundColor = .systemGreen
         playPauseButton.layer.cornerRadius = 8
+        playPauseButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
         speedSlider.minimumValue = 0.1
         speedSlider.maximumValue = 10.0
@@ -356,6 +418,19 @@ extension LocationHistoryViewController {
         speedSlider.addTarget(self, action: #selector(speedChanged), for: .valueChanged)
         
         progressSlider.addTarget(self, action: #selector(progressChanged), for: .valueChanged)
+        
+        // Style the labels
+        timeRangeLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        timeRangeLabel.textColor = .systemBlue
+        
+        locationCountLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        locationCountLabel.textColor = .systemGray
+        
+        currentTimeLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        currentTimeLabel.textColor = .systemRed
+        
+        speedLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        speedLabel.textColor = .systemBlue
         
         updateSpeedLabel()
         updateTimeMachineUI()
@@ -418,6 +493,20 @@ extension LocationHistoryViewController {
     private func updateTimeMachineMap() {
         mapView.removeAnnotations(mapView.annotations.filter { !($0 is MKUserLocation) })
         
+        // Remove existing route line
+        if let polyline = routePolyline {
+            mapView.removeOverlay(polyline)
+        }
+        
+        // Add route line if we have multiple locations
+        if timeMachineLocations.count > 1 {
+            let coordinates = timeMachineLocations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+            routePolyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
+            if let polyline = routePolyline {
+                mapView.addOverlay(polyline)
+            }
+        }
+        
         // Add all locations as dots
         for (index, location) in timeMachineLocations.enumerated() {
             let annotation = TimeMachineAnnotation(
@@ -430,13 +519,21 @@ extension LocationHistoryViewController {
             mapView.addAnnotation(annotation)
         }
         
-        // Center map on current location or all locations
+        // Add current location marker with special styling
         if currentLocationIndex < timeMachineLocations.count {
             let currentLocation = timeMachineLocations[currentLocationIndex]
+            let currentAnnotation = CurrentLocationAnnotation(
+                coordinate: CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude),
+                title: "Current Position",
+                subtitle: DateFormatter.localizedString(from: currentLocation.timestamp ?? Date(), dateStyle: .short, timeStyle: .short)
+            )
+            mapView.addAnnotation(currentAnnotation)
+            
+            // Center map on current location with smooth animation
             let region = MKCoordinateRegion(
                 center: CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude),
-                latitudinalMeters: 1000,
-                longitudinalMeters: 1000
+                latitudinalMeters: 500,
+                longitudinalMeters: 500
             )
             mapView.setRegion(region, animated: true)
         } else if !timeMachineLocations.isEmpty {
@@ -479,11 +576,11 @@ extension LocationHistoryViewController {
         playPauseButton.backgroundColor = .systemOrange
         
         // Calculate interval based on speed (faster speed = shorter interval)
-        let baseInterval: TimeInterval = 0.5 // 0.5 seconds per location at 1x speed
+        let baseInterval: TimeInterval = 1.0 // 1 second per location at 1x speed for smooth animation
         let interval = baseInterval / replaySpeed
         
         replayTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            self?.advanceToNextLocation()
+            self?.advanceToNextLocationWithAnimation()
         }
     }
     
@@ -502,17 +599,61 @@ extension LocationHistoryViewController {
         updateTimeMachineMap()
     }
     
-    private func advanceToNextLocation() {
-        currentLocationIndex += 1
-        
-        if currentLocationIndex >= timeMachineLocations.count {
+    private func advanceToNextLocationWithAnimation() {
+        guard currentLocationIndex + 1 < timeMachineLocations.count else {
             // Reached the end, stop replay
             stopReplay()
             return
         }
         
-        updateTimeMachineUI()
-        updateTimeMachineMap()
+        let startLocation = timeMachineLocations[currentLocationIndex]
+        let endLocation = timeMachineLocations[currentLocationIndex + 1]
+        
+        // Start smooth animation between locations
+        animateToNextLocation(from: startLocation, to: endLocation) { [weak self] in
+            self?.currentLocationIndex += 1
+            self?.updateTimeMachineUI()
+        }
+    }
+    
+    private func animateToNextLocation(from startLocation: Location, to endLocation: Location, completion: @escaping () -> Void) {
+        let startCoord = CLLocationCoordinate2D(latitude: startLocation.latitude, longitude: startLocation.longitude)
+        let endCoord = CLLocationCoordinate2D(latitude: endLocation.latitude, longitude: endLocation.longitude)
+        
+        // Calculate distance for animation duration
+        let distance = CLLocation(latitude: startCoord.latitude, longitude: startCoord.longitude)
+            .distance(from: CLLocation(latitude: endCoord.latitude, longitude: endCoord.longitude))
+        
+        // Animation duration based on distance (minimum 0.3s, maximum 2.0s)
+        let baseDuration = min(max(distance / 1000.0, 0.3), 2.0) // Scale with distance
+        let animationDuration = baseDuration / replaySpeed
+        
+        // Create temporary annotation for smooth movement
+        let tempAnnotation = CurrentLocationAnnotation(
+            coordinate: startCoord,
+            title: "Moving...",
+            subtitle: nil
+        )
+        mapView.addAnnotation(tempAnnotation)
+        
+        // Animate the marker smoothly
+        UIView.animate(withDuration: animationDuration, delay: 0, options: [.curveEaseInOut], animations: {
+            // Update the annotation coordinate smoothly
+            tempAnnotation.coordinate = endCoord
+            
+            // Center map on the moving marker
+            let region = MKCoordinateRegion(
+                center: endCoord,
+                latitudinalMeters: 500,
+                longitudinalMeters: 500
+            )
+            self.mapView.setRegion(region, animated: true)
+            
+        }) { _ in
+            // Remove temporary annotation
+            self.mapView.removeAnnotation(tempAnnotation)
+            completion()
+        }
     }
 }
 
@@ -523,6 +664,20 @@ enum HistoryFilter {
     case last24Hours
     case last7Days
     case last30Days
+}
+
+// MARK: - Custom Annotation Classes
+class CurrentLocationAnnotation: NSObject, MKAnnotation {
+    var coordinate: CLLocationCoordinate2D
+    let title: String?
+    let subtitle: String?
+    
+    init(coordinate: CLLocationCoordinate2D, title: String?, subtitle: String?) {
+        self.coordinate = coordinate
+        self.title = title
+        self.subtitle = subtitle
+        super.init()
+    }
 }
 
 // MARK: - MKCoordinateRegion Extension
