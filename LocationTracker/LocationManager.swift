@@ -14,9 +14,9 @@ class LocationManager: NSObject, ObservableObject {
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var lastLocationUpdate: Date?
     
-    // Energy-efficient settings
-    private let significantLocationChangeThreshold: CLLocationDistance = 100 // meters
-    private let minimumTimeInterval: TimeInterval = 300 // 5 minutes
+    // Energy-efficient settings (TESTING: 10 seconds for easy verification)
+    private let significantLocationChangeThreshold: CLLocationDistance = 10 // meters (reduced for testing)
+    private let minimumTimeInterval: TimeInterval = 10 // 10 seconds (for testing)
     private var lastSavedLocation: CLLocation?
     private var lastSaveTime: Date?
     
@@ -34,8 +34,8 @@ class LocationManager: NSObject, ObservableObject {
     
     private func setupLocationManager() {
         locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters // Energy-efficient accuracy
-        locationManager.distanceFilter = significantLocationChangeThreshold
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest // High accuracy for testing
+        locationManager.distanceFilter = 1 // 1 meter for testing (very sensitive)
         
         // Enable background location updates
         locationManager.allowsBackgroundLocationUpdates = true
@@ -82,16 +82,18 @@ class LocationManager: NSObject, ObservableObject {
         locationManager.startMonitoringSignificantLocationChanges()
         isTracking = true
         
-        // Also start standard location updates with low frequency
-        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        locationManager.distanceFilter = significantLocationChangeThreshold
+        // Also start standard location updates with high frequency for testing
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 1 // 1 meter for testing
         locationManager.startUpdatingLocation()
         
-        print("✅ Location tracking started with energy-efficient settings and background updates enabled")
+        print("✅ Location tracking started with TESTING settings and background updates enabled")
         print("📱 Background location updates: \(locationManager.allowsBackgroundLocationUpdates)")
         print("⏸️ Pauses automatically: \(locationManager.pausesLocationUpdatesAutomatically)")
         print("🎯 Accuracy: \(locationManager.desiredAccuracy)")
         print("📏 Distance filter: \(locationManager.distanceFilter)")
+        print("⏰ Logging frequency: Every \(minimumTimeInterval) seconds")
+        print("📐 Distance threshold: \(significantLocationChangeThreshold) meters")
     }
     
     func stopTracking() {
@@ -102,8 +104,8 @@ class LocationManager: NSObject, ObservableObject {
     }
     
     private func shouldSaveLocation(_ location: CLLocation) -> Bool {
-        // Don't save if accuracy is too poor
-        guard location.horizontalAccuracy <= 100 else { return false }
+        // Don't save if accuracy is too poor (relaxed for testing)
+        guard location.horizontalAccuracy <= 500 else { return false } // 500m for testing
         
         // Check time interval
         if let lastTime = lastSaveTime {
