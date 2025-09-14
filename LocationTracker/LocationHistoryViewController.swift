@@ -42,6 +42,7 @@ class LocationHistoryViewController: UIViewController {
     private var animationProgress: Double = 0.0
     private var animationStartLocation: CLLocationCoordinate2D?
     private var animationEndLocation: CLLocationCoordinate2D?
+    private var initialZoomLevel: MKCoordinateSpan?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -462,6 +463,9 @@ extension LocationHistoryViewController {
     }
     
     private func setupTimeMachineData() {
+        // Store initial zoom level to prevent dizzy zoom changes
+        initialZoomLevel = mapView.region.span
+        
         // Use last 24 hours by default
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
         timeMachineLocations = locationHistory.filter { location in
@@ -554,17 +558,20 @@ extension LocationHistoryViewController {
             )
             mapView.addAnnotation(currentAnnotation)
             
-            // Center map on current location with smooth animation
-            let region = MKCoordinateRegion(
+            // Center map on current location without changing zoom level
+            let preservedSpan = initialZoomLevel ?? mapView.region.span
+            let newRegion = MKCoordinateRegion(
                 center: CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude),
-                latitudinalMeters: 500,
-                longitudinalMeters: 500
+                span: preservedSpan // Keep the same zoom level to prevent dizzy effect
             )
-            mapView.setRegion(region, animated: true)
+            mapView.setRegion(newRegion, animated: true)
         } else if !timeMachineLocations.isEmpty {
-            let coordinates = timeMachineLocations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
-            let region = MKCoordinateRegion(coordinates: coordinates)
-            mapView.setRegion(region, animated: true)
+            // Set initial zoom level to show all locations, but only if not already set
+            if mapView.region.span.latitudeDelta > 0.1 { // If zoomed out too far
+                let coordinates = timeMachineLocations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+                let region = MKCoordinateRegion(coordinates: coordinates)
+                mapView.setRegion(region, animated: true)
+            }
         }
     }
     
@@ -705,14 +712,15 @@ extension LocationHistoryViewController {
         // Update annotation coordinate
         annotation.coordinate = currentCoord
         
-        // Smooth map centering (only every few steps to avoid jittery movement)
-        if currentStep % 5 == 0 || currentStep == totalSteps {
-            let region = MKCoordinateRegion(
+        // Smooth map centering without zoom changes (only every few steps)
+        if currentStep % 10 == 0 || currentStep == totalSteps {
+            // Only center the map without changing zoom level to prevent dizzy effect
+            let preservedSpan = initialZoomLevel ?? mapView.region.span
+            let newRegion = MKCoordinateRegion(
                 center: currentCoord,
-                latitudinalMeters: 350,
-                longitudinalMeters: 350
+                span: preservedSpan // Keep the same zoom level throughout animation
             )
-            mapView.setRegion(region, animated: true)
+            mapView.setRegion(newRegion, animated: true)
         }
         
         // Schedule next step
