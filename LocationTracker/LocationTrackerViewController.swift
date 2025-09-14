@@ -29,9 +29,13 @@ class LocationTrackerViewController: UIViewController {
         updateUI()
         
         // Explicitly request location permission if not determined
+        print("🔔 View appeared - current auth status: \(locationManager.authorizationStatus.rawValue)")
         if locationManager.authorizationStatus == .notDetermined {
-            print("🔔 View appeared - requesting location permission...")
+            print("🔔 Requesting location permission...")
             locationManager.requestLocationPermission()
+        } else if locationManager.authorizationStatus == .authorizedWhenInUse {
+            print("🔔 Have 'When In Use' - requesting 'Always' permission...")
+            locationManager.requestAlwaysPermission()
         }
     }
     
@@ -224,6 +228,10 @@ class LocationTrackerViewController: UIViewController {
             self?.showLocationPermissionInfo()
         })
         
+        alert.addAction(UIAlertAction(title: "Request When In Use Permission", style: .default) { [weak self] _ in
+            self?.requestWhenInUsePermission()
+        })
+        
         alert.addAction(UIAlertAction(title: "Request Always Permission", style: .default) { [weak self] _ in
             self?.requestAlwaysPermission()
         })
@@ -306,6 +314,11 @@ class LocationTrackerViewController: UIViewController {
         if let debugVC = storyboard.instantiateViewController(withIdentifier: "DebugInfoViewController") as? DebugInfoViewController {
             navigationController?.pushViewController(debugVC, animated: true)
         }
+    }
+    
+    private func requestWhenInUsePermission() {
+        print("🔔 Manually requesting 'When In Use' permission...")
+        locationManager.requestLocationPermission()
     }
     
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {

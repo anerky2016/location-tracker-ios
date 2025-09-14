@@ -51,12 +51,14 @@ class LocationManager: NSObject, ObservableObject {
         switch authorizationStatus {
         case .notDetermined:
             print("📱 Requesting 'When In Use' location permission first...")
+            // CRITICAL: Must request When In Use first to enable Always option
             locationManager.requestWhenInUseAuthorization()
         case .denied, .restricted:
-            print("❌ Location permission denied or restricted")
+            print("❌ Location permission denied or restricted - user must enable in Settings")
             showLocationPermissionAlert()
         case .authorizedWhenInUse:
             print("✅ Have 'When In Use' - requesting 'Always' permission for background tracking...")
+            // Now we can request Always permission
             locationManager.requestAlwaysAuthorization()
         case .authorizedAlways:
             print("🎯 Location permission already granted for always access")
@@ -321,6 +323,7 @@ extension LocationManager: CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        print("🔄 Authorization status changed to: \(status.rawValue)")
         authorizationStatus = status
         
         switch status {
@@ -331,16 +334,18 @@ extension LocationManager: CLLocationManagerDelegate {
             print("⚠️ Location permission granted for 'When In Use' - now requesting 'Always' permission for background tracking...")
             // Automatically request Always permission after When In Use is granted
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                print("🔄 Requesting 'Always' permission after 'When In Use' was granted...")
                 self.locationManager.requestAlwaysAuthorization()
             }
         case .denied, .restricted:
-            print("❌ Location permission denied or restricted")
+            print("❌ Location permission denied or restricted - user must enable in Settings")
             stopTracking()
             showLocationPermissionAlert()
         case .notDetermined:
-            print("⏳ Location permission not determined yet")
+            print("⏳ Location permission not determined yet - will request on next attempt")
             break
         @unknown default:
+            print("❓ Unknown authorization status: \(status.rawValue)")
             break
         }
     }
