@@ -24,7 +24,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
-		<string>background-processing</string>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Kids.Fun.LocationTracker</string>
