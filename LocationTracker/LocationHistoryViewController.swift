@@ -558,13 +558,9 @@ extension LocationHistoryViewController {
             )
             mapView.addAnnotation(currentAnnotation)
             
-            // Center map on current location without changing zoom level
-            let preservedSpan = initialZoomLevel ?? mapView.region.span
-            let newRegion = MKCoordinateRegion(
-                center: CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude),
-                span: preservedSpan // Keep the same zoom level to prevent dizzy effect
-            )
-            mapView.setRegion(newRegion, animated: true)
+            // Ultra-smooth centering on current location without any zoom changes
+            let currentCoord = CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude)
+            mapView.setCenter(currentCoord, animated: true)
         } else if !timeMachineLocations.isEmpty {
             // Set initial zoom level to show all locations, but only if not already set
             if mapView.region.span.latitudeDelta > 0.1 { // If zoomed out too far
@@ -607,8 +603,8 @@ extension LocationHistoryViewController {
         playPauseButton.setTitle("⏸️ Pause", for: .normal)
         playPauseButton.backgroundColor = .systemOrange
         
-        // More responsive timing - shorter base interval for smoother feel
-        let baseInterval: TimeInterval = 0.8 // 0.8 seconds per location at 1x speed
+        // Ultra-responsive timing - very short base interval for ultra-smooth feel
+        let baseInterval: TimeInterval = 0.6 // 0.6 seconds per location at 1x speed for ultra-smooth feel
         let interval = baseInterval / replaySpeed
         
         replayTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
@@ -660,12 +656,12 @@ extension LocationHistoryViewController {
         let distance = CLLocation(latitude: startCoord.latitude, longitude: startCoord.longitude)
             .distance(from: CLLocation(latitude: endCoord.latitude, longitude: endCoord.longitude))
         
-        // Smoother animation duration - shorter and more consistent
-        let baseDuration = min(max(distance / 2000.0, 0.2), 1.0) // Reduced max duration for smoother feel
+        // Ultra-smooth animation duration - very short and consistent
+        let baseDuration = min(max(distance / 3000.0, 0.15), 0.6) // Much shorter for ultra-smooth feel
         let animationDuration = baseDuration / replaySpeed
         
-        // Create a smooth interpolated animation with multiple steps
-        let steps = max(Int(distance / 30), 8) // Even more steps for ultra-smooth animation
+        // Create ultra-smooth interpolated animation with maximum steps
+        let steps = max(Int(distance / 20), 12) // Maximum steps for buttery smooth animation
         let stepDuration = animationDuration / Double(steps)
         
         // Create temporary annotation for smooth movement
@@ -712,15 +708,10 @@ extension LocationHistoryViewController {
         // Update annotation coordinate
         annotation.coordinate = currentCoord
         
-        // Smooth map centering without zoom changes (only every few steps)
-        if currentStep % 10 == 0 || currentStep == totalSteps {
-            // Only center the map without changing zoom level to prevent dizzy effect
-            let preservedSpan = initialZoomLevel ?? mapView.region.span
-            let newRegion = MKCoordinateRegion(
-                center: currentCoord,
-                span: preservedSpan // Keep the same zoom level throughout animation
-            )
-            mapView.setRegion(newRegion, animated: true)
+        // Ultra-smooth map centering without any zoom changes (minimal updates)
+        if currentStep % 20 == 0 || currentStep == totalSteps {
+            // Use setCenter for smooth centering without any zoom effects
+            mapView.setCenter(currentCoord, animated: true)
         }
         
         // Schedule next step
