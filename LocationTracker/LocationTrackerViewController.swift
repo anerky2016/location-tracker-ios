@@ -28,14 +28,18 @@ class LocationTrackerViewController: UIViewController {
         super.viewWillAppear(animated)
         updateUI()
         
-        // Explicitly request location permission if not determined
+        // FORCE permission request to enable all iOS Settings options
         print("🔔 View appeared - current auth status: \(locationManager.authorizationStatus.rawValue)")
+        
+        // Always try to request "When In Use" permission first to enable all options
         if locationManager.authorizationStatus == .notDetermined {
-            print("🔔 Requesting location permission...")
+            print("🔔 Requesting 'When In Use' permission to enable all iOS Settings options...")
             locationManager.requestLocationPermission()
         } else if locationManager.authorizationStatus == .authorizedWhenInUse {
             print("🔔 Have 'When In Use' - requesting 'Always' permission...")
             locationManager.requestAlwaysPermission()
+        } else {
+            print("🔔 Current status: \(locationManager.authorizationStatus.rawValue) - checking if we need to request permissions...")
         }
     }
     
@@ -228,6 +232,10 @@ class LocationTrackerViewController: UIViewController {
             self?.showLocationPermissionInfo()
         })
         
+        alert.addAction(UIAlertAction(title: "🔓 Force 'When In Use' Permission", style: .default) { [weak self] _ in
+            self?.forceWhenInUsePermission()
+        })
+        
         alert.addAction(UIAlertAction(title: "Request When In Use Permission", style: .default) { [weak self] _ in
             self?.requestWhenInUsePermission()
         })
@@ -316,8 +324,15 @@ class LocationTrackerViewController: UIViewController {
         }
     }
     
+    private func forceWhenInUsePermission() {
+        print("🔓 FORCING 'When In Use' permission request to enable all iOS Settings options...")
+        // This should trigger the system dialog and enable all 4 options in iOS Settings
+        locationManager.requestLocationPermission()
+    }
+    
     private func requestWhenInUsePermission() {
         print("🔔 Manually requesting 'When In Use' permission...")
+        // Directly request When In Use permission to enable all iOS Settings options
         locationManager.requestLocationPermission()
     }
     
