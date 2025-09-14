@@ -20,7 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		AA00000000000000 /* LocationTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LocationTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000 /* Kids.Fun.LocationTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Kids.Fun.LocationTracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA00000000000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA00000000000004 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		AA00000000000006 /* LocationTrackerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTrackerViewController.swift; sourceTree = "<group>"; };
@@ -53,6 +53,14 @@
 			);
 			sourceTree = "<group>";
 		};
+		AA0000000000001E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000000 /* LocationTracker.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		AA0000000000001D /* LocationTracker */ = {
 			isa = PBXGroup;
 			children = (
@@ -71,14 +79,6 @@
 			path = LocationTracker;
 			sourceTree = "<group>";
 		};
-		AA0000000000001E /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				AA00000000000000 /* LocationTracker.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -94,9 +94,9 @@
 			);
 			dependencies = (
 			);
-			name = LocationTracker;
-			productName = LocationTracker;
-			productReference = AA00000000000000 /* LocationTracker.app */;
+			name = Kids.Fun.LocationTracker;
+			productName = Kids.Fun.LocationTracker;
+			productReference = AA00000000000000 /* Kids.Fun.LocationTracker.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -114,7 +114,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AA00000000000024 /* Build configuration list for PBXProject "LocationTracker" */;
+			buildConfigurationList = AA00000000000024 /* Build configuration list for PBXProject "Kids.Fun.LocationTracker" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -127,7 +127,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AA0000000000001F /* LocationTracker */,
+				AA0000000000001F /* Kids.Fun.LocationTracker */,
 			);
 		};
 /* End PBXProject section */
@@ -289,18 +289,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = W954YFM2J5;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LocationTracker/Info.plist;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs location access to track your location history for personal use. Location data is stored locally on your device.";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app needs location access to track your location history even when the app is in the background. Location data is stored locally on your device.";
-				INFOPLIST_KEY_NSLocationUsageDescription = "This app needs location access to track your location history for personal use. Location data is stored locally on your device.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs location access to track your location history for personal use. Location data is stored locally on your device.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -308,7 +302,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Kids.Fun.LocationTracker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.LocationTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -323,18 +317,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = W954YFM2J5;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LocationTracker/Info.plist;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs location access to track your location history for personal use. Location data is stored locally on your device.";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app needs location access to track your location history even when the app is in the background. Location data is stored locally on your device.";
-				INFOPLIST_KEY_NSLocationUsageDescription = "This app needs location access to track your location history for personal use. Location data is stored locally on your device.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs location access to track your location history for personal use. Location data is stored locally on your device.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -342,7 +330,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Kids.Fun.LocationTracker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.LocationTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -353,20 +341,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AA00000000000024 /* Build configuration list for PBXProject "Kids.Fun.LocationTracker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA00000000000025 /* Debug */,
+				AA00000000000026 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		AA00000000000020 /* Build configuration list for PBXNativeTarget "LocationTracker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA00000000000027 /* Debug */,
 				AA00000000000028 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AA00000000000024 /* Build configuration list for PBXProject "LocationTracker" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AA00000000000025 /* Debug */,
-				AA00000000000026 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
