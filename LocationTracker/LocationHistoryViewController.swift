@@ -463,9 +463,6 @@ extension LocationHistoryViewController {
     }
     
     private func setupTimeMachineData() {
-        // Store initial zoom level to prevent dizzy zoom changes
-        initialZoomLevel = mapView.region.span
-        
         // Use last 24 hours by default
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
         timeMachineLocations = locationHistory.filter { location in
@@ -479,7 +476,53 @@ extension LocationHistoryViewController {
         startDate = yesterday
         endDate = Date()
         
+        // Calculate and set optimal zoom level based on location data
+        setOptimalZoomLevel()
+        
         updateTimeMachineUI()
+    }
+    
+    private func setOptimalZoomLevel() {
+        guard !timeMachineLocations.isEmpty else { return }
+        
+        // Calculate the bounding box of all locations
+        let coordinates = timeMachineLocations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        
+        // Find min/max coordinates
+        let latitudes = coordinates.map { $0.latitude }
+        let longitudes = coordinates.map { $0.longitude }
+        
+        let minLat = latitudes.min() ?? 0
+        let maxLat = latitudes.max() ?? 0
+        let minLon = longitudes.min() ?? 0
+        let maxLon = longitudes.max() ?? 0
+        
+        // Calculate center point
+        let centerLat = (minLat + maxLat) / 2
+        let centerLon = (minLon + maxLon) / 2
+        let center = CLLocationCoordinate2D(latitude: centerLat, longitude: centerLon)
+        
+        // Calculate span with padding for better view
+        let latDelta = (maxLat - minLat) * 1.3 // 30% padding
+        let lonDelta = (maxLon - minLon) * 1.3 // 30% padding
+        
+        // Ensure minimum zoom level for very small areas
+        let minSpan = 0.001 // Minimum span to prevent over-zooming
+        let finalLatDelta = max(latDelta, minSpan)
+        let finalLonDelta = max(lonDelta, minSpan)
+        
+        let span = MKCoordinateSpan(latitudeDelta: finalLatDelta, longitudeDelta: finalLonDelta)
+        let region = MKCoordinateRegion(center: center, span: span)
+        
+        // Store the optimal zoom level
+        initialZoomLevel = span
+        
+        // Set the optimal zoom level with smooth animation
+        mapView.setRegion(region, animated: true)
+        
+        print("🎯 Set optimal zoom level for \(timeMachineLocations.count) locations")
+        print("📍 Center: \(centerLat), \(centerLon)")
+        print("📏 Span: \(finalLatDelta), \(finalLonDelta)")
     }
     
     private func updateTimeMachineUI() {
@@ -558,16 +601,9 @@ extension LocationHistoryViewController {
             )
             mapView.addAnnotation(currentAnnotation)
             
-            // Ultra-smooth centering on current location without any zoom changes
+            // Center on current location without changing zoom (zoom already set optimally)
             let currentCoord = CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude)
             mapView.setCenter(currentCoord, animated: true)
-        } else if !timeMachineLocations.isEmpty {
-            // Set initial zoom level to show all locations, but only if not already set
-            if mapView.region.span.latitudeDelta > 0.1 { // If zoomed out too far
-                let coordinates = timeMachineLocations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
-                let region = MKCoordinateRegion(coordinates: coordinates)
-                mapView.setRegion(region, animated: true)
-            }
         }
     }
     
@@ -603,12 +639,17 @@ extension LocationHistoryViewController {
         playPauseButton.setTitle("⏸️ Pause", for: .normal)
         playPauseButton.backgroundColor = .systemOrange
         
-        // Ultra-responsive timing - very short base interval for ultra-smooth feel
-        let baseInterval: TimeInterval = 0.6 // 0.6 seconds per location at 1x speed for ultra-smooth feel
-        let interval = baseInterval / replaySpeed
-        
-        replayTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            self?.advanceToNextLocationWithAnimation()
+        // Wait for zoom transition to complete before starting navigation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self, self.isPlaying else { return }
+            
+            // Ultra-responsive timing - very short base interval for ultra-smooth feel
+            let baseInterval: TimeInterval = 0.6 // 0.6 seconds per location at 1x speed for ultra-smooth feel
+            let interval = baseInterval / self.replaySpeed
+            
+            self.replayTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+                self?.advanceToNextLocationWithAnimation()
+            }
         }
     }
     
