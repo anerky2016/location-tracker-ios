@@ -222,6 +222,10 @@ class LocationTrackerViewController: UIViewController {
             self?.showLowPowerModeTest()
         })
         
+        alert.addAction(UIAlertAction(title: "Background Tracking Status", style: .default) { [weak self] _ in
+            self?.showBackgroundTrackingStatus()
+        })
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         // For iPad
@@ -330,6 +334,20 @@ extension LocationTrackerViewController: MKMapViewDelegate {
         })
         
         alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    private func showBackgroundTrackingStatus() {
+        let status = locationManager.getBackgroundTrackingStatus()
+        let alert = UIAlertController(title: "Background Tracking Status", message: status, preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Open Settings", style: .default) { _ in
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL)
+            }
+        })
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
     }
     

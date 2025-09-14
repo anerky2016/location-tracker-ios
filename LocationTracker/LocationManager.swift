@@ -25,6 +25,11 @@ class LocationManager: NSObject, ObservableObject {
         setupLocationManager()
         checkLowPowerMode()
         setupLowPowerModeObserver()
+        
+        // Auto-start tracking if we already have permission
+        if authorizationStatus == .authorizedAlways {
+            startTracking()
+        }
     }
     
     private func setupLocationManager() {
@@ -34,7 +39,7 @@ class LocationManager: NSObject, ObservableObject {
         
         // Enable background location updates
         locationManager.allowsBackgroundLocationUpdates = true
-        locationManager.pausesLocationUpdatesAutomatically = true
+        locationManager.pausesLocationUpdatesAutomatically = false // Keep tracking in background
         
         // Request appropriate authorization
         authorizationStatus = locationManager.authorizationStatus
@@ -61,13 +66,17 @@ class LocationManager: NSObject, ObservableObject {
     
     func startTracking() {
         guard authorizationStatus == .authorizedAlways else {
+            print("❌ Cannot start tracking: Need 'Always' permission (current: \(authorizationStatus.rawValue))")
             requestLocationPermission()
             return
         }
         
+        // Check background app refresh
+        checkBackgroundAppRefresh()
+        
         // Ensure background location updates are enabled
         locationManager.allowsBackgroundLocationUpdates = true
-        locationManager.pausesLocationUpdatesAutomatically = true
+        locationManager.pausesLocationUpdatesAutomatically = false // Keep tracking in background
         
         // Use significant location changes for energy efficiency
         locationManager.startMonitoringSignificantLocationChanges()
@@ -78,7 +87,11 @@ class LocationManager: NSObject, ObservableObject {
         locationManager.distanceFilter = significantLocationChangeThreshold
         locationManager.startUpdatingLocation()
         
-        print("Location tracking started with energy-efficient settings and background updates enabled")
+        print("✅ Location tracking started with energy-efficient settings and background updates enabled")
+        print("📱 Background location updates: \(locationManager.allowsBackgroundLocationUpdates)")
+        print("⏸️ Pauses automatically: \(locationManager.pausesLocationUpdatesAutomatically)")
+        print("🎯 Accuracy: \(locationManager.desiredAccuracy)")
+        print("📏 Distance filter: \(locationManager.distanceFilter)")
     }
     
     func stopTracking() {
@@ -161,6 +174,21 @@ class LocationManager: NSObject, ObservableObject {
         }
     }
     
+    private func checkBackgroundAppRefresh() {
+        let backgroundRefreshStatus = UIApplication.shared.backgroundRefreshStatus
+        switch backgroundRefreshStatus {
+        case .available:
+            print("✅ Background App Refresh is available")
+        case .denied:
+            print("❌ Background App Refresh is denied - this will prevent background location tracking")
+            print("📱 Please enable Background App Refresh in Settings > General > Background App Refresh")
+        case .restricted:
+            print("⚠️ Background App Refresh is restricted - background location tracking may be limited")
+        @unknown default:
+            print("❓ Background App Refresh status unknown")
+        }
+    }
+    
     private func checkLowPowerMode() {
         if ProcessInfo.processInfo.isLowPowerModeEnabled {
             print("⚠️ LOW POWER MODE ENABLED - Location tracking may be limited")
@@ -173,6 +201,53 @@ class LocationManager: NSObject, ObservableObject {
     
     func getLowPowerModeStatus() -> Bool {
         return ProcessInfo.processInfo.isLowPowerModeEnabled
+    }
+    
+    func getBackgroundTrackingStatus() -> String {
+        var status = "Background Tracking Status:\n"
+        
+        // Check location permission
+        switch authorizationStatus {
+        case .authorizedAlways:
+            status += "✅ Location: Always allowed\n"
+        case .authorizedWhenInUse:
+            status += "❌ Location: When In Use only (need Always)\n"
+        case .denied, .restricted:
+            status += "❌ Location: Denied/Restricted\n"
+        case .notDetermined:
+            status += "⏳ Location: Not determined\n"
+        @unknown default:
+            status += "❓ Location: Unknown status\n"
+        }
+        
+        // Check background app refresh
+        let backgroundRefreshStatus = UIApplication.shared.backgroundRefreshStatus
+        switch backgroundRefreshStatus {
+        case .available:
+            status += "✅ Background App Refresh: Available\n"
+        case .denied:
+            status += "❌ Background App Refresh: Denied\n"
+        case .restricted:
+            status += "⚠️ Background App Refresh: Restricted\n"
+        @unknown default:
+            status += "❓ Background App Refresh: Unknown\n"
+        }
+        
+        // Check low power mode
+        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+            status += "⚠️ Low Power Mode: Enabled (may limit tracking)\n"
+        } else {
+            status += "✅ Low Power Mode: Disabled\n"
+        }
+        
+        // Check tracking status
+        if isTracking {
+            status += "✅ Location Tracking: Active\n"
+        } else {
+            status += "❌ Location Tracking: Inactive\n"
+        }
+        
+        return status
     }
     
     private func setupLowPowerModeObserver() {
@@ -205,11 +280,19 @@ extension LocationManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         
+        let appState = UIApplication.shared.applicationState
+        let stateString = appState == .active ? "FOREGROUND" : (appState == .background ? "BACKGROUND" : "INACTIVE")
+        
+        print("📍 Location update received in \(stateString): \(location.coordinate.latitude), \(location.coordinate.longitude)")
+        print("🎯 Accuracy: \(location.horizontalAccuracy)m, Time: \(location.timestamp)")
+        
         currentLocation = location
         
         // Only save location if it meets our energy-efficient criteria
         if shouldSaveLocation(location) {
             saveLocation(location)
+        } else {
+            print("⏭️ Location not saved (doesn't meet criteria)")
         }
     }
     
