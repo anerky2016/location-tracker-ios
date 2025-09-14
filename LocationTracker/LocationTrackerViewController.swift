@@ -218,6 +218,10 @@ class LocationTrackerViewController: UIViewController {
             self?.showLocationPermissionInfo()
         })
         
+        alert.addAction(UIAlertAction(title: "Request Always Permission", style: .default) { [weak self] _ in
+            self?.requestAlwaysPermission()
+        })
+        
         alert.addAction(UIAlertAction(title: "Low Power Mode Test", style: .default) { [weak self] _ in
             self?.showLowPowerModeTest()
         })
@@ -267,6 +271,22 @@ class LocationTrackerViewController: UIViewController {
         })
         
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func requestAlwaysPermission() {
+        let alert = UIAlertController(
+            title: "Request Always Permission",
+            message: "This will request 'Always' location permission for background tracking. You'll see a system dialog asking for permission.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Request Permission", style: .default) { [weak self] _ in
+            self?.locationManager.requestAlwaysPermission()
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         present(alert, animated: true)
     }
