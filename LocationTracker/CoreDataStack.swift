@@ -47,7 +47,9 @@ class CoreDataStack {
         locationEntity.courseAccuracy = location.courseAccuracy
         locationEntity.speed = location.speed
         locationEntity.speedAccuracy = location.speedAccuracy
-        locationEntity.timestamp = location.timestamp
+        // Use current system time instead of GPS timestamp for consistency
+        // GPS timestamps can differ from system time due to timezone/clock differences
+        locationEntity.timestamp = Date()
         locationEntity.accuracy = location.horizontalAccuracy
         
         saveContext()

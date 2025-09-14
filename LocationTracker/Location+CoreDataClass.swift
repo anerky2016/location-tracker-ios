@@ -16,7 +16,8 @@ public class Location: NSManagedObject {
         self.courseAccuracy = clLocation.courseAccuracy
         self.speed = clLocation.speed
         self.speedAccuracy = clLocation.speedAccuracy
-        self.timestamp = clLocation.timestamp
+        // Use current system time instead of GPS timestamp for consistency
+        self.timestamp = Date()
         self.accuracy = clLocation.horizontalAccuracy
     }
     

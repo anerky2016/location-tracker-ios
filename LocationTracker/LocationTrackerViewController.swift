@@ -48,8 +48,7 @@ class LocationTrackerViewController: UIViewController {
         statusLabel.text = "Initializing..."
         currentLocationLabel.text = "Current Location: Not available"
         lastUpdateLabel.text = "Last Update: Never"
-        batteryOptimizationLabel.text = "Battery Optimization: Enabled"
-        batteryOptimizationLabel.textColor = .systemGreen
+        updateBatteryStatus()
     }
     
     private func setupMapView() {
@@ -105,6 +104,7 @@ class LocationTrackerViewController: UIViewController {
         updateCurrentLocation(locationManager.currentLocation)
         updateAuthorizationStatus(locationManager.authorizationStatus)
         updateLastUpdateTime(locationManager.lastLocationUpdate)
+        updateBatteryStatus()
     }
     
     private func updateTrackingStatus(_ isTracking: Bool) {
@@ -218,6 +218,10 @@ class LocationTrackerViewController: UIViewController {
             self?.showLocationPermissionInfo()
         })
         
+        alert.addAction(UIAlertAction(title: "Low Power Mode Test", style: .default) { [weak self] _ in
+            self?.showLowPowerModeTest()
+        })
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         // For iPad
@@ -297,6 +301,36 @@ extension LocationTrackerViewController: MKMapViewDelegate {
         }
         
         return annotationView
+    }
+    
+    private func updateBatteryStatus() {
+        let isLowPowerMode = locationManager.getLowPowerModeStatus()
+        if isLowPowerMode {
+            batteryOptimizationLabel.text = "🔋 Low Power Mode: ENABLED"
+            batteryOptimizationLabel.textColor = .systemOrange
+        } else {
+            batteryOptimizationLabel.text = "✅ Low Power Mode: Disabled"
+            batteryOptimizationLabel.textColor = .systemGreen
+        }
+    }
+    
+    private func showLowPowerModeTest() {
+        let isLowPowerMode = locationManager.getLowPowerModeStatus()
+        let statusText = isLowPowerMode ? "ENABLED" : "Disabled"
+        let color = isLowPowerMode ? "Orange" : "Green"
+        
+        let alert = UIAlertController(
+            title: "Low Power Mode Test",
+            message: "Current Status: \(statusText) (\(color))\n\nTo test Low Power Mode:\n\n📱 iOS Simulator:\n• Device menu → Low Power Mode\n• Or Cmd+Shift+L\n\n📱 Physical Device:\n• Settings → Battery → Low Power Mode\n\nWatch the Xcode console for real-time updates!",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Refresh Status", style: .default) { [weak self] _ in
+            self?.updateBatteryStatus()
+        })
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 

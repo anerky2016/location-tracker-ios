@@ -23,6 +23,8 @@ class LocationManager: NSObject, ObservableObject {
     override init() {
         super.init()
         setupLocationManager()
+        checkLowPowerMode()
+        setupLowPowerModeObserver()
     }
     
     private func setupLocationManager() {
@@ -157,6 +159,44 @@ class LocationManager: NSObject, ObservableObject {
         } catch {
             print("Error deleting location history: \(error)")
         }
+    }
+    
+    private func checkLowPowerMode() {
+        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+            print("⚠️ LOW POWER MODE ENABLED - Location tracking may be limited")
+            print("📱 Background location updates may be paused by iOS")
+            print("🔋 Consider disabling Low Power Mode for full location tracking")
+        } else {
+            print("✅ Normal power mode - Full location tracking available")
+        }
+    }
+    
+    func getLowPowerModeStatus() -> Bool {
+        return ProcessInfo.processInfo.isLowPowerModeEnabled
+    }
+    
+    private func setupLowPowerModeObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(lowPowerModeChanged),
+            name: .NSProcessInfoPowerStateDidChange,
+            object: nil
+        )
+    }
+    
+    @objc private func lowPowerModeChanged() {
+        DispatchQueue.main.async {
+            if ProcessInfo.processInfo.isLowPowerModeEnabled {
+                print("🔋 LOW POWER MODE ENABLED - Location tracking may be limited")
+                print("📱 iOS may pause background location updates")
+            } else {
+                print("✅ LOW POWER MODE DISABLED - Full location tracking restored")
+            }
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
 
