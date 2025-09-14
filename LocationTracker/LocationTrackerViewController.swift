@@ -230,6 +230,10 @@ class LocationTrackerViewController: UIViewController {
             self?.showBackgroundTrackingStatus()
         })
         
+        alert.addAction(UIAlertAction(title: "Debug Information", style: .default) { [weak self] _ in
+            self?.showDebugInfo()
+        })
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         // For iPad
@@ -289,6 +293,13 @@ class LocationTrackerViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         present(alert, animated: true)
+    }
+    
+    private func showDebugInfo() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let debugVC = storyboard.instantiateViewController(withIdentifier: "DebugInfoViewController") as? DebugInfoViewController {
+            navigationController?.pushViewController(debugVC, animated: true)
+        }
     }
     
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {

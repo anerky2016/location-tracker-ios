@@ -19,6 +19,7 @@
 		AA00000000000029 /* TimeMachineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000002A /* TimeMachineViewController.swift */; };
 		AA0000000000002B /* PaginatedLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000002C /* PaginatedLocationManager.swift */; };
 		AA0000000000002D /* TimeMachineLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000002E /* TimeMachineLocation.swift */; };
+		AA0000000000002F /* DebugInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000030 /* DebugInfoViewController.swift */; };
 		AA00000000000017 /* LocationTracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000018 /* LocationTracker.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
@@ -36,6 +37,7 @@
 		AA0000000000002A /* TimeMachineViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeMachineViewController.swift; sourceTree = "<group>"; };
 		AA0000000000002C /* PaginatedLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaginatedLocationManager.swift; sourceTree = "<group>"; };
 		AA0000000000002E /* TimeMachineLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeMachineLocation.swift; sourceTree = "<group>"; };
+		AA00000000000030 /* DebugInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugInfoViewController.swift; sourceTree = "<group>"; };
 		AA00000000000019 /* LocationTracker.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = LocationTracker.xcdatamodel; sourceTree = "<group>"; };
 		AA0000000000001A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -77,6 +79,7 @@
 				AA0000000000002A /* TimeMachineViewController.swift */,
 				AA0000000000002C /* PaginatedLocationManager.swift */,
 				AA0000000000002E /* TimeMachineLocation.swift */,
+				AA00000000000030 /* DebugInfoViewController.swift */,
 				AA0000000000000E /* LocationManager.swift */,
 				AA00000000000010 /* CoreDataStack.swift */,
 				AA00000000000018 /* LocationTracker.xcdatamodeld */,
@@ -164,6 +167,7 @@
 				AA00000000000029 /* TimeMachineViewController.swift in Sources */,
 				AA0000000000002B /* PaginatedLocationManager.swift in Sources */,
 				AA0000000000002D /* TimeMachineLocation.swift in Sources */,
+				AA0000000000002F /* DebugInfoViewController.swift in Sources */,
 				AA0000000000000D /* LocationManager.swift in Sources */,
 				AA0000000000000F /* CoreDataStack.swift in Sources */,
 				AA00000000000017 /* LocationTracker.xcdatamodeld in Sources */,

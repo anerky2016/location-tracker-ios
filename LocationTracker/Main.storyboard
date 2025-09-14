@@ -398,6 +398,50 @@
             </objects>
             <point key="canvasLocation" x="2000" y="200"/>
         </scene>
+        <!--Debug Info View Controller-->
+        <scene sceneID="debug-info-scene">
+            <objects>
+                <viewController id="debug-info-vc" customClass="DebugInfoViewController" customModule="LocationTracker" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="DebugInfoViewController">
+                    <view key="view" contentMode="scaleToFill" id="debug-info-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="debug-scroll-view">
+                                <rect key="frame" x="0.0" y="103" width="393" height="715"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="debug-content-view">
+                                        <rect key="frame" x="0.0" y="0.0" width="393" height="715"/>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                    </view>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="debug-content-view" firstAttribute="top" secondItem="debug-scroll-view" secondAttribute="top" id="debug-content-top"/>
+                                    <constraint firstItem="debug-content-view" firstAttribute="leading" secondItem="debug-scroll-view" secondAttribute="leading" id="debug-content-leading"/>
+                                    <constraint firstAttribute="trailing" secondItem="debug-content-view" secondAttribute="trailing" id="debug-content-trailing"/>
+                                    <constraint firstAttribute="bottom" secondItem="debug-content-view" secondAttribute="bottom" id="debug-content-bottom"/>
+                                    <constraint firstItem="debug-content-view" firstAttribute="width" secondItem="debug-scroll-view" secondAttribute="width" id="debug-content-width"/>
+                                </constraints>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="debug-safe-area"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="debug-scroll-view" firstAttribute="top" secondItem="debug-safe-area" secondAttribute="top" id="debug-scroll-top"/>
+                            <constraint firstItem="debug-scroll-view" firstAttribute="leading" secondItem="debug-safe-area" secondAttribute="leading" id="debug-scroll-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="debug-scroll-view" secondAttribute="trailing" id="debug-scroll-trailing"/>
+                            <constraint firstItem="debug-safe-area" firstAttribute="bottom" secondItem="debug-scroll-view" secondAttribute="bottom" id="debug-scroll-bottom"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Debug Information" id="debug-nav-item"/>
+                    <connections>
+                        <outlet property="contentView" destination="debug-content-view" id="debug-content-outlet"/>
+                        <outlet property="scrollView" destination="debug-scroll-view" id="debug-scroll-outlet"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="debug-first-responder" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2000" y="200"/>
+        </scene>
     </scenes>
     <resources>
         <systemColor name="systemBackgroundColor">
