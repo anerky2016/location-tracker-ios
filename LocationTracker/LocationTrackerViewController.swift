@@ -222,10 +222,6 @@ class LocationTrackerViewController: UIViewController {
             self?.showLowPowerModeTest()
         })
         
-        alert.addAction(UIAlertAction(title: "🕰️ Time Machine", style: .default) { [weak self] _ in
-            self?.showTimeMachine()
-        })
-        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         // For iPad
@@ -337,12 +333,6 @@ extension LocationTrackerViewController: MKMapViewDelegate {
         present(alert, animated: true)
     }
     
-    private func showTimeMachine() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let timeMachineVC = storyboard.instantiateViewController(withIdentifier: "TimeMachineViewController") as? TimeMachineViewController {
-            navigationController?.pushViewController(timeMachineVC, animated: true)
-        }
-    }
 }
 
 // MARK: - Custom Annotation

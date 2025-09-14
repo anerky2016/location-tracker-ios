@@ -139,6 +139,7 @@
                                         <segments>
                                             <segment title="List"/>
                                             <segment title="Map"/>
+                                            <segment title="🕰️ Time Machine"/>
                                         </segments>
                                         <connections>
                                             <action selector="segmentChanged" destination="history-vc" eventType="valueChanged" id="segment-action"/>
@@ -151,6 +152,92 @@
                                     <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="history-map">
                                         <rect key="frame" x="0.0" y="68.333333333333314" width="353" height="660.66666666666669"/>
                                     </mapView>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="time-machine-container">
+                                        <rect key="frame" x="0.0" y="68.333333333333314" width="353" height="200"/>
+                                        <subviews>
+                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="history-time-machine-stack">
+                                                <rect key="frame" x="0.0" y="0.0" width="353" height="200"/>
+                                                <subviews>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Time Range: Last 24 hours" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="history-time-range-label">
+                                                        <rect key="frame" x="0.0" y="0.0" width="353" height="20.333333333333314"/>
+                                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                                        <color key="textColor" systemColor="systemBlueColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0 locations" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="history-location-count-label">
+                                                        <rect key="frame" x="0.0" y="28.333333333333314" width="353" height="20.333333333333314"/>
+                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                        <nil key="textColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current Time: --" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="history-current-time-label">
+                                                        <rect key="frame" x="0.0" y="56.666666666666629" width="353" height="20.333333333333314"/>
+                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                        <color key="textColor" systemColor="systemGreenColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="history-play-pause-button">
+                                                        <rect key="frame" x="0.0" y="85" width="353" height="40"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="height" constant="40" id="history-play-pause-height"/>
+                                                        </constraints>
+                                                        <state key="normal" title="▶️ Play"/>
+                                                        <buttonConfiguration key="configuration" style="filled" title="▶️ Play"/>
+                                                        <connections>
+                                                            <action selector="playPauseButtonTapped:" destination="history-vc" eventType="touchUpInside" id="history-play-pause-action"/>
+                                                        </connections>
+                                                    </button>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="horizontal" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="history-speed-stack">
+                                                        <rect key="frame" x="0.0" y="133" width="353" height="30.666666666666686"/>
+                                                        <subviews>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Speed:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="history-speed-label-text">
+                                                                <rect key="frame" x="0.0" y="0.0" width="50" height="30.666666666666686"/>
+                                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                                <nil key="textColor"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.10000000149011612" maxValue="10" translatesAutoresizingMaskIntoConstraints="NO" id="history-speed-slider">
+                                                                <rect key="frame" x="66" y="0.0" width="200" height="30.666666666666686"/>
+                                                                <connections>
+                                                                    <action selector="speedChanged" destination="history-vc" eventType="valueChanged" id="history-speed-slider-action"/>
+                                                                </connections>
+                                                            </slider>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1.0x" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="history-speed-label">
+                                                                <rect key="frame" x="282" y="0.0" width="71" height="30.666666666666686"/>
+                                                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                                                <color key="textColor" systemColor="systemBlueColor"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                        </subviews>
+                                                    </stackView>
+                                                    <stackView opaque="NO" contentMode="scaleToFill" axis="horizontal" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="history-progress-stack">
+                                                        <rect key="frame" x="0.0" y="171.66666666666666" width="353" height="30.666666666666686"/>
+                                                        <subviews>
+                                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Progress:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="history-progress-label-text">
+                                                                <rect key="frame" x="0.0" y="0.0" width="70" height="30.666666666666686"/>
+                                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                                <nil key="textColor"/>
+                                                                <nil key="highlightedColor"/>
+                                                            </label>
+                                                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0" minValue="0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="history-progress-slider">
+                                                                <rect key="frame" x="86" y="0.0" width="200" height="30.666666666666686"/>
+                                                                <connections>
+                                                                    <action selector="progressChanged" destination="history-vc" eventType="valueChanged" id="history-progress-slider-action"/>
+                                                                </connections>
+                                                            </slider>
+                                                        </subviews>
+                                                    </stackView>
+                                                </subviews>
+                                            </stackView>
+                                        </subviews>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                        <constraints>
+                                            <constraint firstItem="history-time-machine-stack" firstAttribute="top" secondItem="time-machine-container" secondAttribute="top" id="history-time-machine-stack-top"/>
+                                            <constraint firstItem="history-time-machine-stack" firstAttribute="leading" secondItem="time-machine-container" secondAttribute="leading" id="history-time-machine-stack-leading"/>
+                                            <constraint firstItem="time-machine-container" firstAttribute="trailing" secondItem="history-time-machine-stack" secondAttribute="trailing" id="history-time-machine-stack-trailing"/>
+                                            <constraint firstItem="time-machine-container" firstAttribute="bottom" secondItem="history-time-machine-stack" secondAttribute="bottom" id="history-time-machine-stack-bottom"/>
+                                        </constraints>
+                                    </view>
                                 </subviews>
                             </stackView>
                         </subviews>
@@ -171,10 +258,18 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="currentTimeLabel" destination="history-current-time-label" id="history-current-time-outlet"/>
+                        <outlet property="locationCountLabel" destination="history-location-count-label" id="history-location-count-outlet"/>
                         <outlet property="mapView" destination="history-map" id="history-map-outlet"/>
+                        <outlet property="playPauseButton" destination="history-play-pause-button" id="history-play-pause-outlet"/>
+                        <outlet property="progressSlider" destination="history-progress-slider" id="history-progress-slider-outlet"/>
                         <outlet property="segmentedControl" destination="segmented-control" id="segment-outlet"/>
+                        <outlet property="speedLabel" destination="history-speed-label" id="history-speed-label-outlet"/>
+                        <outlet property="speedSlider" destination="history-speed-slider" id="history-speed-slider-outlet"/>
                         <outlet property="statsLabel" destination="stats-label" id="stats-outlet"/>
                         <outlet property="tableView" destination="history-table" id="table-outlet"/>
+                        <outlet property="timeMachineContainer" destination="time-machine-container" id="time-machine-container-outlet"/>
+                        <outlet property="timeRangeLabel" destination="history-time-range-label" id="history-time-range-outlet"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="history-responder" sceneMemberID="firstResponder"/>
