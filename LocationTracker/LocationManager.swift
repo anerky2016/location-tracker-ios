@@ -41,8 +41,8 @@ class LocationManager: NSObject, ObservableObject {
     func requestLocationPermission() {
         switch authorizationStatus {
         case .notDetermined:
-            print("Requesting 'When In Use' location permission first...")
-            locationManager.requestWhenInUseAuthorization()
+            print("Requesting 'Always' location permission for background tracking...")
+            locationManager.requestAlwaysAuthorization()
         case .denied, .restricted:
             print("Location permission denied or restricted")
             showLocationPermissionAlert()
@@ -181,8 +181,8 @@ extension LocationManager: CLLocationManagerDelegate {
             print("✅ Location permission granted for 'Always' access - background tracking enabled")
             startTracking()
         case .authorizedWhenInUse:
-            print("⚠️ Location permission granted for 'When In Use' only")
-            print("🔄 Now requesting 'Always' access for background tracking...")
+            print("⚠️ Location permission granted for 'When In Use' only - background tracking not available")
+            print("🔄 Requesting 'Always' access for background tracking...")
             // Request always authorization for background tracking
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.locationManager.requestAlwaysAuthorization()
