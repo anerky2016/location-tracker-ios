@@ -506,17 +506,17 @@ extension LocationHistoryViewController {
         let centerLon = (minLon + maxLon) / 2
         let center = CLLocationCoordinate2D(latitude: centerLat, longitude: centerLon)
         
-        // Calculate span with minimal padding for much closer view
-        let latDelta = (maxLat - minLat) * 1.1 // Only 10% padding for closer view
-        let lonDelta = (maxLon - minLon) * 1.1 // Only 10% padding for closer view
+        // Calculate span with more padding for better overview
+        let latDelta = (maxLat - minLat) * 1.5 // 50% padding for better overview
+        let lonDelta = (maxLon - minLon) * 1.5 // 50% padding for better overview
         
-        // Apply additional zoom-in factor for better detail
-        let zoomFactor = 0.7 // 30% more zoom-in for better detail
+        // Apply zoom-out factor for better viewing experience
+        let zoomFactor = 1.2 // 20% more zoom-out for better experience
         let adjustedLatDelta = latDelta * zoomFactor
         let adjustedLonDelta = lonDelta * zoomFactor
         
-        // Much smaller minimum span for better zoom-in on small areas
-        let minSpan = 0.0003 // Even smaller minimum span for maximum zoom-in
+        // Larger minimum span for better overview
+        let minSpan = 0.001 // Larger minimum span for better overview
         let finalLatDelta = max(adjustedLatDelta, minSpan)
         let finalLonDelta = max(adjustedLonDelta, minSpan)
         
