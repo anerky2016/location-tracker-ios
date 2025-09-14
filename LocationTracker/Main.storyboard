@@ -227,6 +227,12 @@
                                                             </slider>
                                                         </subviews>
                                                     </stackView>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Debug Info: Loading..." textAlignment="left" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="history-debug-info-label">
+                                                        <rect key="frame" x="0.0" y="202.33333333333331" width="353" height="40"/>
+                                                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                                        <color key="textColor" systemColor="systemGrayColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
                                                 </subviews>
                                             </stackView>
                                         </subviews>
@@ -270,6 +276,7 @@
                         <outlet property="tableView" destination="history-table" id="table-outlet"/>
                         <outlet property="timeMachineContainer" destination="time-machine-container" id="time-machine-container-outlet"/>
                         <outlet property="timeRangeLabel" destination="history-time-range-label" id="history-time-range-outlet"/>
+                        <outlet property="debugInfoLabel" destination="history-debug-info-label" id="history-debug-info-outlet"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="history-responder" sceneMemberID="firstResponder"/>

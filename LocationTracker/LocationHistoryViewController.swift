@@ -19,6 +19,7 @@ class LocationHistoryViewController: UIViewController {
     @IBOutlet weak var progressSlider: UISlider!
     @IBOutlet weak var currentTimeLabel: UILabel!
     @IBOutlet weak var locationCountLabel: UILabel!
+    @IBOutlet weak var debugInfoLabel: UILabel!
     
     private let locationManager = LocationManager.shared
     private var locationHistory: [Location] = []
@@ -482,6 +483,7 @@ extension LocationHistoryViewController {
         endDate = Date()
         
         updateTimeMachineUI()
+        updateDebugInfo()
     }
     
     private func setOptimalZoomLevel() {
@@ -531,6 +533,11 @@ extension LocationHistoryViewController {
         print("📍 Center: \(centerLat), \(centerLon)")
         print("📏 Span: \(finalLatDelta), \(finalLonDelta)")
         print("🗺️ Map region set with animated: true")
+        
+        // Update debug info after zoom level is set
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.updateDebugInfo()
+        }
     }
     
     private func updateTimeMachineUI() {
@@ -552,6 +559,7 @@ extension LocationHistoryViewController {
         }
         
         updateCurrentTimeLabel()
+        updateDebugInfo()
     }
     
     private func updateCurrentTimeLabel() {
@@ -568,6 +576,24 @@ extension LocationHistoryViewController {
     
     private func updateSpeedLabel() {
         speedLabel.text = String(format: "%.1fx", replaySpeed)
+    }
+    
+    private func updateDebugInfo() {
+        let currentRegion = mapView.region
+        let center = currentRegion.center
+        let span = currentRegion.span
+        
+        let debugText = """
+        🗺️ DEBUG INFO:
+        Center: \(String(format: "%.6f", center.latitude)), \(String(format: "%.6f", center.longitude))
+        Span: \(String(format: "%.6f", span.latitudeDelta)) x \(String(format: "%.6f", span.longitudeDelta))
+        Locations: \(timeMachineLocations.count)
+        Current Index: \(currentLocationIndex)
+        Playing: \(isPlaying ? "Yes" : "No")
+        Speed: \(String(format: "%.1fx", replaySpeed))
+        """
+        
+        debugInfoLabel.text = debugText
     }
     
     private func updateTimeMachineMap() {
@@ -626,6 +652,7 @@ extension LocationHistoryViewController {
     @objc private func speedChanged() {
         replaySpeed = Double(speedSlider.value)
         updateSpeedLabel()
+        updateDebugInfo()
         
         // Restart timer with new speed if playing
         if isPlaying {
@@ -638,6 +665,7 @@ extension LocationHistoryViewController {
         currentLocationIndex = Int(progressSlider.value)
         updateTimeMachineUI()
         updateTimeMachineMap()
+        updateDebugInfo()
     }
     
     private func startReplay() {
@@ -646,6 +674,7 @@ extension LocationHistoryViewController {
         isPlaying = true
         playPauseButton.setTitle("⏸️ Pause", for: .normal)
         playPauseButton.backgroundColor = .systemOrange
+        updateDebugInfo()
         
         // Wait for zoom transition to complete before starting navigation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
@@ -667,6 +696,7 @@ extension LocationHistoryViewController {
         playPauseButton.backgroundColor = .systemGreen
         replayTimer?.invalidate()
         replayTimer = nil
+        updateDebugInfo()
     }
     
     private func stopReplay() {
