@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22758" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22754"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Location Tracker View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="LocationTrackerViewController" customModule="LocationTracker" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="LocationTrackerViewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="map-view">
+                                <rect key="frame" x="0.0" y="103" width="393" height="300"/>
+                            </mapView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="main-stack">
+                                <rect key="frame" x="20" y="423" width="353" height="409"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Status: Initializing..." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="status-label">
+                                        <rect key="frame" x="0.0" y="0.0" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                        <color key="textColor" systemColor="systemOrangeColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current Location: Not available" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="current-location-label">
+                                        <rect key="frame" x="0.0" y="36.333333333333314" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Last Update: Never" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="last-update-label">
+                                        <rect key="frame" x="0.0" y="72.666666666666629" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Battery Optimization: Enabled" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="battery-optimization-label">
+                                        <rect key="frame" x="0.0" y="109" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" systemColor="systemGreenColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="toggle-button">
+                                        <rect key="frame" x="0.0" y="145.33333333333331" width="353" height="50"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="50" id="toggle-button-height"/>
+                                        </constraints>
+                                        <state key="normal" title="Start Tracking">
+                                            <color key="titleColor" systemColor="systemBackgroundColor"/>
+                                        </state>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="color" keyPath="backgroundColor">
+                                                <color key="value" systemColor="systemBlueColor"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                        <connections>
+                                            <action selector="toggleTracking:" destination="BYZ-38-t0r" eventType="touchUpInside" id="toggle-action"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="history-button">
+                                        <rect key="frame" x="0.0" y="211.33333333333331" width="353" height="50"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="50" id="history-button-height"/>
+                                        </constraints>
+                                        <state key="normal" title="View Location History">
+                                            <color key="titleColor" systemColor="systemBackgroundColor"/>
+                                        </state>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="color" keyPath="backgroundColor">
+                                                <color key="value" systemColor="systemGreenColor"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                        <connections>
+                                            <action selector="showHistory:" destination="BYZ-38-t0r" eventType="touchUpInside" id="history-action"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="map-view" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="map-leading"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="map-view" secondAttribute="trailing" id="map-trailing"/>
+                            <constraint firstItem="map-view" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="map-top"/>
+                            <constraint firstItem="map-view" firstAttribute="height" constant="300" id="map-height"/>
+                            <constraint firstItem="main-stack" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="stack-leading"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="main-stack" secondAttribute="trailing" constant="20" id="stack-trailing"/>
+                            <constraint firstItem="main-stack" firstAttribute="top" secondItem="map-view" secondAttribute="bottom" constant="20" id="stack-top"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="main-stack" secondAttribute="bottom" constant="20" id="stack-bottom"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Location Tracker" id="nav-item">
+                        <barButtonItem key="rightBarButtonItem" title="Settings" id="settings-button">
+                            <connections>
+                                <action selector="showSettings" destination="BYZ-38-t0r" id="settings-action"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="batteryOptimizationLabel" destination="battery-optimization-label" id="battery-outlet"/>
+                        <outlet property="currentLocationLabel" destination="current-location-label" id="current-location-outlet"/>
+                        <outlet property="historyButton" destination="history-button" id="history-outlet"/>
+                        <outlet property="lastUpdateLabel" destination="last-update-label" id="last-update-outlet"/>
+                        <outlet property="mapView" destination="map-view" id="map-outlet"/>
+                        <outlet property="statusLabel" destination="status-label" id="status-outlet"/>
+                        <outlet property="toggleButton" destination="toggle-button" id="toggle-outlet"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="20" y="3"/>
+        </scene>
+        <!--Location History View Controller-->
+        <scene sceneID="history-scene">
+            <objects>
+                <viewController id="history-vc" customClass="LocationHistoryViewController" customModule="LocationTracker" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="LocationHistoryViewController">
+                    <view key="view" contentMode="scaleToFill" id="history-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="history-stack">
+                                <rect key="frame" x="20" y="103" width="353" height="729"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Total: 0 locations | Showing: 0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="stats-label">
+                                        <rect key="frame" x="0.0" y="0.0" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="segmented-control">
+                                        <rect key="frame" x="0.0" y="28.333333333333314" width="353" height="32"/>
+                                        <segments>
+                                            <segment title="List"/>
+                                            <segment title="Map"/>
+                                        </segments>
+                                        <connections>
+                                            <action selector="segmentChanged" destination="history-vc" eventType="valueChanged" id="segment-action"/>
+                                        </connections>
+                                    </segmentedControl>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="history-table">
+                                        <rect key="frame" x="0.0" y="68.333333333333314" width="353" height="660.66666666666669"/>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                    </tableView>
+                                    <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="history-map">
+                                        <rect key="frame" x="0.0" y="68.333333333333314" width="353" height="660.66666666666669"/>
+                                    </mapView>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="history-safe-area"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="history-stack" firstAttribute="leading" secondItem="history-safe-area" secondAttribute="leading" constant="20" id="history-stack-leading"/>
+                            <constraint firstItem="history-safe-area" firstAttribute="trailing" secondItem="history-stack" secondAttribute="trailing" constant="20" id="history-stack-trailing"/>
+                            <constraint firstItem="history-stack" firstAttribute="top" secondItem="history-safe-area" secondAttribute="top" id="history-stack-top"/>
+                            <constraint firstItem="history-safe-area" firstAttribute="bottom" secondItem="history-stack" secondAttribute="bottom" id="history-stack-bottom"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Location History" id="history-nav-item">
+                        <barButtonItem key="rightBarButtonItem" title="Filter" id="filter-button">
+                            <connections>
+                                <action selector="showFilterOptions" destination="history-vc" id="filter-action"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="mapView" destination="history-map" id="history-map-outlet"/>
+                        <outlet property="segmentedControl" destination="segmented-control" id="segment-outlet"/>
+                        <outlet property="statsLabel" destination="stats-label" id="stats-outlet"/>
+                        <outlet property="tableView" destination="history-table" id="table-outlet"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="history-responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1000" y="3"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBlueColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemGreenColor">
+            <color red="0.20392156862745098" green="0.7803921568627451" blue="0.34901960784313724" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemOrangeColor">
+            <color red="1" green="0.58431372549019611" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>
