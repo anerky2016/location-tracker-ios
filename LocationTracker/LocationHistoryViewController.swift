@@ -167,6 +167,11 @@ class LocationHistoryViewController: UIViewController {
                 self.isShowingMap = true
                 self.setupTimeMachineData()
                 self.updateTimeMachineMap()
+                
+                // Ensure map is visible before setting zoom level
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.setOptimalZoomLevel()
+                }
             default:
                 break
             }
@@ -476,9 +481,6 @@ extension LocationHistoryViewController {
         startDate = yesterday
         endDate = Date()
         
-        // Calculate and set optimal zoom level based on location data
-        setOptimalZoomLevel()
-        
         updateTimeMachineUI()
     }
     
@@ -528,6 +530,7 @@ extension LocationHistoryViewController {
         print("🎯 Set optimal zoom level for \(timeMachineLocations.count) locations")
         print("📍 Center: \(centerLat), \(centerLon)")
         print("📏 Span: \(finalLatDelta), \(finalLonDelta)")
+        print("🗺️ Map region set with animated: true")
     }
     
     private func updateTimeMachineUI() {
