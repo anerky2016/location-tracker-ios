@@ -181,6 +181,121 @@
             </objects>
             <point key="canvasLocation" x="1000" y="3"/>
         </scene>
+        <!--Time Machine View Controller-->
+        <scene sceneID="time-machine-scene">
+            <objects>
+                <viewController id="time-machine-vc" customClass="TimeMachineViewController" customModule="Kids_Fun_LocationTracker" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="TimeMachineViewController">
+                    <view key="view" contentMode="scaleToFill" id="time-machine-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="time-machine-map">
+                                <rect key="frame" x="0.0" y="103" width="393" height="400"/>
+                            </mapView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="time-machine-stack">
+                                <rect key="frame" x="20" y="523" width="353" height="309"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Time Range: Last 24 hours" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="time-range-label">
+                                        <rect key="frame" x="0.0" y="0.0" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                        <color key="textColor" systemColor="systemBlueColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="0 locations" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="location-count-label">
+                                        <rect key="frame" x="0.0" y="32.333333333333314" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current Time: --" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="current-time-label">
+                                        <rect key="frame" x="0.0" y="64.666666666666629" width="353" height="20.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" systemColor="systemGreenColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="play-pause-button">
+                                        <rect key="frame" x="0.0" y="97" width="353" height="50"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="50" id="play-pause-height"/>
+                                        </constraints>
+                                        <state key="normal" title="▶️ Play"/>
+                                        <buttonConfiguration key="configuration" style="filled" title="▶️ Play"/>
+                                        <connections>
+                                            <action selector="playPauseButtonTapped:" destination="time-machine-vc" eventType="touchUpInside" id="play-pause-action"/>
+                                        </connections>
+                                    </button>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="horizontal" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="speed-stack">
+                                        <rect key="frame" x="0.0" y="159" width="353" height="30.666666666666686"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Speed:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="speed-label-text">
+                                                <rect key="frame" x="0.0" y="0.0" width="50" height="30.666666666666686"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.10000000149011612" maxValue="10" translatesAutoresizingMaskIntoConstraints="NO" id="speed-slider">
+                                                <rect key="frame" x="66" y="0.0" width="200" height="30.666666666666686"/>
+                                                <connections>
+                                                    <action selector="speedChanged" destination="time-machine-vc" eventType="valueChanged" id="speed-slider-action"/>
+                                                </connections>
+                                            </slider>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1.0x" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="speed-label">
+                                                <rect key="frame" x="282" y="0.0" width="71" height="30.666666666666686"/>
+                                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                                <color key="textColor" systemColor="systemBlueColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="horizontal" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="progress-stack">
+                                        <rect key="frame" x="0.0" y="201.66666666666666" width="353" height="30.666666666666686"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Progress:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="progress-label-text">
+                                                <rect key="frame" x="0.0" y="0.0" width="70" height="30.666666666666686"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0" minValue="0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="progress-slider">
+                                                <rect key="frame" x="86" y="0.0" width="200" height="30.666666666666686"/>
+                                                <connections>
+                                                    <action selector="progressChanged" destination="time-machine-vc" eventType="valueChanged" id="progress-slider-action"/>
+                                                </connections>
+                                            </slider>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="time-machine-safe-area"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="time-machine-map" firstAttribute="top" secondItem="time-machine-safe-area" secondAttribute="top" id="time-machine-map-top"/>
+                            <constraint firstItem="time-machine-map" firstAttribute="leading" secondItem="time-machine-safe-area" secondAttribute="leading" id="time-machine-map-leading"/>
+                            <constraint firstItem="time-machine-safe-area" firstAttribute="trailing" secondItem="time-machine-map" secondAttribute="trailing" id="time-machine-map-trailing"/>
+                            <constraint firstItem="time-machine-stack" firstAttribute="top" secondItem="time-machine-map" secondAttribute="bottom" constant="20" id="time-machine-stack-top"/>
+                            <constraint firstItem="time-machine-stack" firstAttribute="leading" secondItem="time-machine-safe-area" secondAttribute="leading" constant="20" id="time-machine-stack-leading"/>
+                            <constraint firstItem="time-machine-safe-area" firstAttribute="trailing" secondItem="time-machine-stack" secondAttribute="trailing" constant="20" id="time-machine-stack-trailing"/>
+                            <constraint firstItem="time-machine-safe-area" firstAttribute="bottom" secondItem="time-machine-stack" secondAttribute="bottom" constant="20" id="time-machine-stack-bottom"/>
+                            <constraint firstAttribute="height" constant="400" id="time-machine-map-height"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Time Machine" id="time-machine-nav-item"/>
+                    <connections>
+                        <outlet property="currentTimeLabel" destination="current-time-label" id="current-time-outlet"/>
+                        <outlet property="locationCountLabel" destination="location-count-label" id="location-count-outlet"/>
+                        <outlet property="mapView" destination="time-machine-map" id="time-machine-map-outlet"/>
+                        <outlet property="playPauseButton" destination="play-pause-button" id="play-pause-outlet"/>
+                        <outlet property="progressSlider" destination="progress-slider" id="progress-slider-outlet"/>
+                        <outlet property="speedLabel" destination="speed-label" id="speed-label-outlet"/>
+                        <outlet property="speedSlider" destination="speed-slider" id="speed-slider-outlet"/>
+                        <outlet property="timeRangeLabel" destination="time-range-label" id="time-range-outlet"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="time-machine-first-responder" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2000" y="200"/>
+        </scene>
     </scenes>
     <resources>
         <systemColor name="systemBackgroundColor">
