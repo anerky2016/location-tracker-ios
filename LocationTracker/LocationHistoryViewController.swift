@@ -315,29 +315,54 @@ extension LocationHistoryViewController: MKMapViewDelegate {
                 annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
                 annotationView?.canShowCallout = true
                 
-                // Create a custom view for the current location marker
-                let markerView = UIView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
-                markerView.backgroundColor = .systemRed
-                markerView.layer.cornerRadius = 10
-                markerView.layer.borderWidth = 3
-                markerView.layer.borderColor = UIColor.white.cgColor
-                markerView.layer.shadowColor = UIColor.black.cgColor
-                markerView.layer.shadowOffset = CGSize(width: 0, height: 2)
-                markerView.layer.shadowRadius = 4
-                markerView.layer.shadowOpacity = 0.3
+                // Create a more sophisticated marker with multiple layers
+                let containerView = UIView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
+                containerView.backgroundColor = .clear
                 
-                // Add pulsing animation
+                // Outer pulsing ring
+                let outerRing = UIView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
+                outerRing.backgroundColor = .clear
+                outerRing.layer.cornerRadius = 15
+                outerRing.layer.borderWidth = 2
+                outerRing.layer.borderColor = UIColor.systemRed.withAlphaComponent(0.6).cgColor
+                
+                // Inner solid dot
+                let innerDot = UIView(frame: CGRect(x: 8, y: 8, width: 14, height: 14))
+                innerDot.backgroundColor = .systemRed
+                innerDot.layer.cornerRadius = 7
+                innerDot.layer.borderWidth = 2
+                innerDot.layer.borderColor = UIColor.white.cgColor
+                innerDot.layer.shadowColor = UIColor.black.cgColor
+                innerDot.layer.shadowOffset = CGSize(width: 0, height: 1)
+                innerDot.layer.shadowRadius = 2
+                innerDot.layer.shadowOpacity = 0.4
+                
+                containerView.addSubview(outerRing)
+                containerView.addSubview(innerDot)
+                
+                // Smooth pulsing animation for outer ring
                 let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
-                pulseAnimation.duration = 1.0
+                pulseAnimation.duration = 1.5
                 pulseAnimation.fromValue = 1.0
-                pulseAnimation.toValue = 1.3
+                pulseAnimation.toValue = 1.4
                 pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                 pulseAnimation.autoreverses = true
                 pulseAnimation.repeatCount = .infinity
-                markerView.layer.add(pulseAnimation, forKey: "pulse")
+                outerRing.layer.add(pulseAnimation, forKey: "pulse")
                 
-                annotationView?.addSubview(markerView)
-                annotationView?.frame = markerView.frame
+                // Subtle breathing animation for inner dot
+                let breatheAnimation = CABasicAnimation(keyPath: "opacity")
+                breatheAnimation.duration = 2.0
+                breatheAnimation.fromValue = 1.0
+                breatheAnimation.toValue = 0.7
+                breatheAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                breatheAnimation.autoreverses = true
+                breatheAnimation.repeatCount = .infinity
+                innerDot.layer.add(breatheAnimation, forKey: "breathe")
+                
+                annotationView?.addSubview(containerView)
+                annotationView?.frame = containerView.frame
+                annotationView?.centerOffset = CGPoint(x: 0, y: -15) // Center the marker properly
             } else {
                 annotationView?.annotation = annotation
             }
@@ -575,8 +600,8 @@ extension LocationHistoryViewController {
         playPauseButton.setTitle("⏸️ Pause", for: .normal)
         playPauseButton.backgroundColor = .systemOrange
         
-        // Calculate interval based on speed (faster speed = shorter interval)
-        let baseInterval: TimeInterval = 1.0 // 1 second per location at 1x speed for smooth animation
+        // More responsive timing - shorter base interval for smoother feel
+        let baseInterval: TimeInterval = 0.8 // 0.8 seconds per location at 1x speed
         let interval = baseInterval / replaySpeed
         
         replayTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
@@ -609,10 +634,14 @@ extension LocationHistoryViewController {
         let startLocation = timeMachineLocations[currentLocationIndex]
         let endLocation = timeMachineLocations[currentLocationIndex + 1]
         
+        // Update UI immediately for better responsiveness
+        currentLocationIndex += 1
+        updateTimeMachineUI()
+        
         // Start smooth animation between locations
         animateToNextLocation(from: startLocation, to: endLocation) { [weak self] in
-            self?.currentLocationIndex += 1
-            self?.updateTimeMachineUI()
+            // Animation completed - update map to show final position
+            self?.updateTimeMachineMap()
         }
     }
     
@@ -624,9 +653,13 @@ extension LocationHistoryViewController {
         let distance = CLLocation(latitude: startCoord.latitude, longitude: startCoord.longitude)
             .distance(from: CLLocation(latitude: endCoord.latitude, longitude: endCoord.longitude))
         
-        // Animation duration based on distance (minimum 0.3s, maximum 2.0s)
-        let baseDuration = min(max(distance / 1000.0, 0.3), 2.0) // Scale with distance
+        // Smoother animation duration - shorter and more consistent
+        let baseDuration = min(max(distance / 2000.0, 0.2), 1.0) // Reduced max duration for smoother feel
         let animationDuration = baseDuration / replaySpeed
+        
+        // Create a smooth interpolated animation with multiple steps
+        let steps = max(Int(distance / 30), 8) // Even more steps for ultra-smooth animation
+        let stepDuration = animationDuration / Double(steps)
         
         // Create temporary annotation for smooth movement
         let tempAnnotation = CurrentLocationAnnotation(
@@ -636,23 +669,61 @@ extension LocationHistoryViewController {
         )
         mapView.addAnnotation(tempAnnotation)
         
-        // Animate the marker smoothly
-        UIView.animate(withDuration: animationDuration, delay: 0, options: [.curveEaseInOut], animations: {
-            // Update the annotation coordinate smoothly
-            tempAnnotation.coordinate = endCoord
-            
-            // Center map on the moving marker
-            let region = MKCoordinateRegion(
-                center: endCoord,
-                latitudinalMeters: 500,
-                longitudinalMeters: 500
-            )
-            self.mapView.setRegion(region, animated: true)
-            
-        }) { _ in
+        // Smooth step-by-step animation
+        animateMarkerStep(annotation: tempAnnotation, 
+                         from: startCoord, 
+                         to: endCoord, 
+                         currentStep: 0, 
+                         totalSteps: steps, 
+                         stepDuration: stepDuration,
+                         completion: {
             // Remove temporary annotation
             self.mapView.removeAnnotation(tempAnnotation)
             completion()
+        })
+    }
+    
+    private func animateMarkerStep(annotation: CurrentLocationAnnotation,
+                                 from startCoord: CLLocationCoordinate2D,
+                                 to endCoord: CLLocationCoordinate2D,
+                                 currentStep: Int,
+                                 totalSteps: Int,
+                                 stepDuration: TimeInterval,
+                                 completion: @escaping () -> Void) {
+        
+        guard currentStep <= totalSteps else {
+            completion()
+            return
+        }
+        
+        // Calculate interpolated coordinate
+        let progress = Double(currentStep) / Double(totalSteps)
+        let lat = startCoord.latitude + (endCoord.latitude - startCoord.latitude) * progress
+        let lon = startCoord.longitude + (endCoord.longitude - startCoord.longitude) * progress
+        let currentCoord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        
+        // Update annotation coordinate
+        annotation.coordinate = currentCoord
+        
+        // Smooth map centering (only every few steps to avoid jittery movement)
+        if currentStep % 5 == 0 || currentStep == totalSteps {
+            let region = MKCoordinateRegion(
+                center: currentCoord,
+                latitudinalMeters: 350,
+                longitudinalMeters: 350
+            )
+            mapView.setRegion(region, animated: true)
+        }
+        
+        // Schedule next step
+        DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration) {
+            self.animateMarkerStep(annotation: annotation,
+                                 from: startCoord,
+                                 to: endCoord,
+                                 currentStep: currentStep + 1,
+                                 totalSteps: totalSteps,
+                                 stepDuration: stepDuration,
+                                 completion: completion)
         }
     }
 }
