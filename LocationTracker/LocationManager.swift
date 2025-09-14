@@ -46,20 +46,23 @@ class LocationManager: NSObject, ObservableObject {
     }
     
     func requestLocationPermission() {
+        print("🔍 Current authorization status: \(authorizationStatus.rawValue)")
+        
         switch authorizationStatus {
         case .notDetermined:
-            print("Requesting 'When In Use' location permission first...")
+            print("📱 Requesting 'When In Use' location permission first...")
             locationManager.requestWhenInUseAuthorization()
         case .denied, .restricted:
-            print("Location permission denied or restricted")
+            print("❌ Location permission denied or restricted")
             showLocationPermissionAlert()
         case .authorizedWhenInUse:
-            print("Current permission: 'When In Use' - requesting 'Always' permission for background tracking...")
+            print("✅ Have 'When In Use' - requesting 'Always' permission for background tracking...")
             locationManager.requestAlwaysAuthorization()
         case .authorizedAlways:
-            print("Location permission already granted for always access")
+            print("🎯 Location permission already granted for always access")
             startTracking()
         @unknown default:
+            print("❓ Unknown authorization status")
             break
         }
     }

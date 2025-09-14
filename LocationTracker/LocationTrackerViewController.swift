@@ -27,6 +27,12 @@ class LocationTrackerViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateUI()
+        
+        // Explicitly request location permission if not determined
+        if locationManager.authorizationStatus == .notDetermined {
+            print("🔔 View appeared - requesting location permission...")
+            locationManager.requestLocationPermission()
+        }
     }
     
     private func setupUI() {
