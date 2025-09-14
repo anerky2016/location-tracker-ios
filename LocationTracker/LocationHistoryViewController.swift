@@ -22,12 +22,15 @@ class LocationHistoryViewController: UIViewController {
     @IBOutlet weak var debugInfoLabel: UILabel!
     
     private let locationManager = LocationManager.shared
-    private var locationHistory: [Location] = []
+    private let paginatedManager = PaginatedLocationManager(pageSize: 50)
+    
+    // Memory-optimized data storage
+    private var loadedLocations: [Location] = []
     private var filteredHistory: [Location] = []
     private var isShowingMap = false
     
-    // Time Machine properties
-    private var timeMachineLocations: [Location] = []
+    // Time Machine properties - using lightweight structs
+    private var timeMachineLocations: [TimeMachineLocation] = []
     private var currentLocationIndex = 0
     private var replayTimer: Timer?
     private var isPlaying = false
@@ -97,29 +100,35 @@ class LocationHistoryViewController: UIViewController {
     }
     
     private func loadLocationHistory() {
-        locationHistory = locationManager.getLocationHistory(limit: 1000)
-        filteredHistory = locationHistory
+        // Reset pagination and load first page
+        paginatedManager.resetPagination()
+        loadedLocations = paginatedManager.loadNextPage()
+        filteredHistory = loadedLocations
         updateStats()
         
         DispatchQueue.main.async {
             self.tableView.reloadData()
             self.updateMapWithHistory()
         }
+        
+        print("📊 Memory-optimized loading: \(loadedLocations.count) locations loaded (page 1)")
     }
     
     private func updateStats() {
-        let totalLocations = locationHistory.count
+        let totalLocations = paginatedManager.totalLocationCount
+        let loadedCount = paginatedManager.loadedLocationCount
         let filteredLocations = filteredHistory.count
         
         if totalLocations > 0 {
-            let firstLocation = locationHistory.last?.timestamp ?? Date()
-            let lastLocation = locationHistory.first?.timestamp ?? Date()
+            let firstLocation = loadedLocations.isEmpty ? Date() : (loadedLocations.last?.timestamp ?? Date())
+            let lastLocation = loadedLocations.isEmpty ? Date() : (loadedLocations.first?.timestamp ?? Date())
             
             let formatter = DateFormatter()
             formatter.dateStyle = .short
             formatter.timeStyle = .none
             
-            statsLabel.text = "Total: \(totalLocations) locations | Showing: \(filteredLocations) | From: \(formatter.string(from: firstLocation)) to \(formatter.string(from: lastLocation))"
+            let paginationInfo = paginatedManager.hasMorePages ? " (more available)" : ""
+            statsLabel.text = "Total: \(totalLocations) locations | Loaded: \(loadedCount)\(paginationInfo) | Showing: \(filteredLocations) | From: \(formatter.string(from: firstLocation)) to \(formatter.string(from: lastLocation))"
         } else {
             statsLabel.text = "No location history available"
         }
@@ -214,16 +223,16 @@ class LocationHistoryViewController: UIViewController {
         
         switch filter {
         case .all:
-            filteredHistory = locationHistory
+            filteredHistory = loadedLocations
         case .last24Hours:
             let yesterday = calendar.date(byAdding: .day, value: -1, to: now) ?? now
-            filteredHistory = locationHistory.filter { ($0.timestamp ?? Date()) >= yesterday }
+            filteredHistory = loadedLocations.filter { ($0.timestamp ?? Date()) >= yesterday }
         case .last7Days:
             let weekAgo = calendar.date(byAdding: .day, value: -7, to: now) ?? now
-            filteredHistory = locationHistory.filter { ($0.timestamp ?? Date()) >= weekAgo }
+            filteredHistory = loadedLocations.filter { ($0.timestamp ?? Date()) >= weekAgo }
         case .last30Days:
             let monthAgo = calendar.date(byAdding: .day, value: -30, to: now) ?? now
-            filteredHistory = locationHistory.filter { ($0.timestamp ?? Date()) >= monthAgo }
+            filteredHistory = loadedLocations.filter { ($0.timestamp ?? Date()) >= monthAgo }
         }
         
         updateStats()
@@ -314,7 +323,7 @@ extension LocationHistoryViewController: MKMapViewDelegate {
         guard !(annotation is MKUserLocation) else { return nil }
         
         // Handle Current Location annotation (for smooth animation)
-        if let currentAnnotation = annotation as? CurrentLocationAnnotation {
+        if annotation is CurrentLocationAnnotation {
             let identifier = "CurrentLocationAnnotation"
             var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
             
@@ -471,13 +480,17 @@ extension LocationHistoryViewController {
     private func setupTimeMachineData() {
         // Use last 24 hours by default
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
-        timeMachineLocations = locationHistory.filter { location in
-            guard let timestamp = location.timestamp else { return false }
-            return timestamp >= yesterday
+        
+        // Get locations in date range using paginated manager
+        let locationsInRange = paginatedManager.getLocationsInDateRange(from: yesterday, to: Date())
+        
+        // Convert to lightweight TimeMachineLocation structs
+        timeMachineLocations = locationsInRange.enumerated().map { index, location in
+            TimeMachineLocation.from(location, index: index)
         }
         
         // Sort by timestamp
-        timeMachineLocations.sort { ($0.timestamp ?? Date.distantPast) < ($1.timestamp ?? Date.distantPast) }
+        timeMachineLocations.sort { $0.timestamp < $1.timestamp }
         
         startDate = yesterday
         endDate = Date()
@@ -490,7 +503,7 @@ extension LocationHistoryViewController {
         guard !timeMachineLocations.isEmpty else { return }
         
         // Calculate the bounding box of all locations
-        let coordinates = timeMachineLocations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        let coordinates = timeMachineLocations.map { $0.coordinate }
         
         // Find min/max coordinates
         let latitudes = coordinates.map { $0.latitude }
@@ -568,7 +581,7 @@ extension LocationHistoryViewController {
             let formatter = DateFormatter()
             formatter.dateStyle = .short
             formatter.timeStyle = .medium
-            currentTimeLabel.text = formatter.string(from: location.timestamp ?? Date())
+            currentTimeLabel.text = formatter.string(from: location.timestamp)
         } else {
             currentTimeLabel.text = "No location"
         }
@@ -606,7 +619,7 @@ extension LocationHistoryViewController {
         
         // Add route line if we have multiple locations
         if timeMachineLocations.count > 1 {
-            let coordinates = timeMachineLocations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+            let coordinates = timeMachineLocations.map { $0.coordinate }
             routePolyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
             if let polyline = routePolyline {
                 mapView.addOverlay(polyline)
@@ -616,9 +629,9 @@ extension LocationHistoryViewController {
         // Add all locations as dots
         for (index, location) in timeMachineLocations.enumerated() {
             let annotation = TimeMachineAnnotation(
-                coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
+                coordinate: location.coordinate,
                 title: "Location \(index + 1)",
-                subtitle: DateFormatter.localizedString(from: location.timestamp ?? Date(), dateStyle: .short, timeStyle: .short),
+                subtitle: DateFormatter.localizedString(from: location.timestamp, dateStyle: .short, timeStyle: .short),
                 index: index,
                 isCurrent: index == currentLocationIndex
             )
@@ -629,14 +642,14 @@ extension LocationHistoryViewController {
         if currentLocationIndex < timeMachineLocations.count {
             let currentLocation = timeMachineLocations[currentLocationIndex]
             let currentAnnotation = CurrentLocationAnnotation(
-                coordinate: CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude),
+                coordinate: currentLocation.coordinate,
                 title: "Current Position",
-                subtitle: DateFormatter.localizedString(from: currentLocation.timestamp ?? Date(), dateStyle: .short, timeStyle: .short)
+                subtitle: DateFormatter.localizedString(from: currentLocation.timestamp, dateStyle: .short, timeStyle: .short)
             )
             mapView.addAnnotation(currentAnnotation)
             
             // Center on current location without changing zoom (zoom already set optimally)
-            let currentCoord = CLLocationCoordinate2D(latitude: currentLocation.latitude, longitude: currentLocation.longitude)
+            let currentCoord = currentLocation.coordinate
             mapView.setCenter(currentCoord, animated: true)
         }
     }
@@ -727,9 +740,9 @@ extension LocationHistoryViewController {
         }
     }
     
-    private func animateToNextLocation(from startLocation: Location, to endLocation: Location, completion: @escaping () -> Void) {
-        let startCoord = CLLocationCoordinate2D(latitude: startLocation.latitude, longitude: startLocation.longitude)
-        let endCoord = CLLocationCoordinate2D(latitude: endLocation.latitude, longitude: endLocation.longitude)
+    private func animateToNextLocation(from startLocation: TimeMachineLocation, to endLocation: TimeMachineLocation, completion: @escaping () -> Void) {
+        let startCoord = startLocation.coordinate
+        let endCoord = endLocation.coordinate
         
         // Calculate distance for animation duration
         let distance = CLLocation(latitude: startCoord.latitude, longitude: startCoord.longitude)
