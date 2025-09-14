@@ -48,6 +48,13 @@ class LocationManager: NSObject, ObservableObject {
     func requestLocationPermission() {
         print("🔍 Current authorization status: \(authorizationStatus.rawValue)")
         
+        // Check if location services are enabled on the device
+        guard CLLocationManager.locationServicesEnabled() else {
+            print("❌ Location services are disabled on this device")
+            showLocationServicesDisabledAlert()
+            return
+        }
+        
         switch authorizationStatus {
         case .notDetermined:
             print("📱 Requesting 'When In Use' location permission first...")
@@ -164,6 +171,29 @@ class LocationManager: NSObject, ObservableObject {
             let alert = UIAlertController(
                 title: "Location Permission Required",
                 message: "Please enable location access in Settings to track your location history.",
+                preferredStyle: .alert
+            )
+            
+            alert.addAction(UIAlertAction(title: "Settings", style: .default) { _ in
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+            })
+            
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                window.rootViewController?.present(alert, animated: true)
+            }
+        }
+    }
+    
+    private func showLocationServicesDisabledAlert() {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(
+                title: "Location Services Disabled",
+                message: "Location services are disabled on this device. Please enable them in Settings > Privacy & Security > Location Services.",
                 preferredStyle: .alert
             )
             
@@ -351,20 +381,30 @@ extension LocationManager: CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location manager failed with error: \(error)")
+        print("❌ Location manager failed with error: \(error)")
         
         // Handle specific errors
         if let clError = error as? CLError {
             switch clError.code {
             case .denied:
+                print("🚫 Location access denied - stopping tracking")
                 stopTracking()
                 showLocationPermissionAlert()
             case .locationUnknown:
+                print("📍 Location unknown - this is temporary, continuing tracking")
                 // Temporary error, continue tracking
                 break
+            case .network:
+                print("🌐 Network error - check internet connection")
+                break
+            case .headingFailure:
+                print("🧭 Heading failure - not critical for location tracking")
+                break
             default:
-                print("Location error: \(clError.localizedDescription)")
+                print("❓ Location error: \(clError.localizedDescription) (Code: \(clError.code.rawValue))")
             }
+        } else {
+            print("❓ Unknown error type: \(error)")
         }
     }
 }
