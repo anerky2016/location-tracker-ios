@@ -65,7 +65,8 @@ class DebugInfoViewController: UIViewController {
             "📍 Location Services",
             "💾 Core Data",
             "⚡ Performance Metrics",
-            "🔧 App Configuration"
+            "🔧 App Configuration",
+            "🔐 Database Encryption"
         ]
         
         var lastLabel: UILabel?
@@ -134,6 +135,8 @@ class DebugInfoViewController: UIViewController {
             labels = createPerformanceInfoLabels()
         case "🔧 App Configuration":
             labels = createAppConfigLabels()
+        case "🔐 Database Encryption":
+            labels = createEncryptionInfoLabels()
         default:
             labels = []
         }
@@ -176,7 +179,10 @@ class DebugInfoViewController: UIViewController {
             createInfoLabel("Location Services: \(getLocationServicesStatus())"),
             createInfoLabel("Background App Refresh: \(getBackgroundAppRefreshStatus())"),
             createInfoLabel("Location Accuracy: \(getLocationAccuracy())"),
-            createInfoLabel("Last Location Update: \(getLastLocationUpdate())")
+            createInfoLabel("Last Location Update: \(getLastLocationUpdate())"),
+            createInfoLabel("Current Speed: \(getCurrentSpeed())"),
+            createInfoLabel("Speed Category: \(getSpeedCategory())"),
+            createInfoLabel("Logging Interval: \(getLoggingInterval())")
         ]
     }
     
@@ -206,6 +212,12 @@ class DebugInfoViewController: UIViewController {
             createInfoLabel("Debug Mode: \(getDebugMode())"),
             createInfoLabel("Last Updated: \(getLastUpdated())")
         ]
+    }
+    
+    private func createEncryptionInfoLabels() -> [UILabel] {
+        let encryptionStatus = CoreDataStack.shared.getEncryptionStatus()
+        let lines = encryptionStatus.components(separatedBy: "\n")
+        return lines.map { createInfoLabel($0) }
     }
     
     private func createInfoLabel(_ text: String) -> UILabel {
@@ -424,6 +436,31 @@ class DebugInfoViewController: UIViewController {
             return formatter.string(from: lastUpdate)
         }
         return "Never"
+    }
+    
+    private func getCurrentSpeed() -> String {
+        let velocity = LocationManager.shared.getCurrentVelocity()
+        let speedKmh = velocity * 3.6
+        return String(format: "%.1f m/s (%.1f km/h)", velocity, speedKmh)
+    }
+    
+    private func getSpeedCategory() -> String {
+        let velocity = LocationManager.shared.getCurrentVelocity()
+        if velocity >= 10.0 {
+            return "High Speed (≥36 km/h)"
+        } else if velocity >= 3.0 {
+            return "Medium Speed (≥11 km/h)"
+        } else if velocity >= 0.5 {
+            return "Low Speed (≥1.8 km/h)"
+        } else {
+            return "Stationary (<1.8 km/h)"
+        }
+    }
+    
+    private func getLoggingInterval() -> String {
+        let interval = LocationManager.shared.getCurrentLoggingInterval()
+        let minutes = interval / 60
+        return String(format: "%.0f seconds (%.1f min)", interval, minutes)
     }
     
     private func getTotalLocationCount() -> String {

@@ -20,6 +20,22 @@ class LocationManager: NSObject, ObservableObject {
     private var lastSavedLocation: CLLocation?
     private var lastSaveTime: Date?
     
+    // Velocity-based logging settings
+    private var lastLocationForVelocity: CLLocation?
+    private var currentVelocity: CLLocationSpeed = 0 // m/s
+    private var dynamicLoggingInterval: TimeInterval = 300 // Start with 5 minutes
+    
+    // Speed thresholds for different logging frequencies
+    private let highSpeedThreshold: CLLocationSpeed = 10.0 // m/s (36 km/h) - highway speed
+    private let mediumSpeedThreshold: CLLocationSpeed = 3.0 // m/s (11 km/h) - walking speed
+    private let lowSpeedThreshold: CLLocationSpeed = 0.5 // m/s (1.8 km/h) - very slow movement
+    
+    // Logging intervals based on speed
+    private let highSpeedInterval: TimeInterval = 30 // 30 seconds for high speed
+    private let mediumSpeedInterval: TimeInterval = 120 // 2 minutes for medium speed
+    private let lowSpeedInterval: TimeInterval = 300 // 5 minutes for low speed
+    private let stationaryInterval: TimeInterval = 600 // 10 minutes when stationary
+    
     override init() {
         super.init()
         setupLocationManager()
@@ -118,12 +134,16 @@ class LocationManager: NSObject, ObservableObject {
         locationManager.distanceFilter = significantLocationChangeThreshold
         locationManager.startUpdatingLocation()
         
-        print("✅ Location tracking started with energy-efficient settings and background updates enabled")
+        print("✅ Location tracking started with velocity-based dynamic logging")
         print("📱 Background location updates: \(locationManager.allowsBackgroundLocationUpdates)")
         print("⏸️ Pauses automatically: \(locationManager.pausesLocationUpdatesAutomatically)")
         print("🎯 Accuracy: \(locationManager.desiredAccuracy)")
         print("📏 Distance filter: \(locationManager.distanceFilter)")
-        print("⏰ Logging frequency: Every \(minimumTimeInterval) seconds")
+        print("⏰ Dynamic logging intervals:")
+        print("   🚗 High speed (≥36 km/h): Every \(Int(highSpeedInterval))s")
+        print("   🚶 Medium speed (≥11 km/h): Every \(Int(mediumSpeedInterval))s")
+        print("   🐌 Low speed (≥1.8 km/h): Every \(Int(lowSpeedInterval))s")
+        print("   🛑 Stationary (<1.8 km/h): Every \(Int(stationaryInterval))s")
         print("📐 Distance threshold: \(significantLocationChangeThreshold) meters")
     }
     
@@ -138,9 +158,15 @@ class LocationManager: NSObject, ObservableObject {
         // Don't save if accuracy is too poor
         guard location.horizontalAccuracy <= 100 else { return false } // 100m accuracy threshold
         
-        // Check time interval
+        // Calculate velocity and update logging interval
+        updateVelocityAndLoggingInterval(location)
+        
+        // Check time interval (using dynamic interval based on velocity)
         if let lastTime = lastSaveTime {
-            guard Date().timeIntervalSince(lastTime) >= minimumTimeInterval else { return false }
+            guard Date().timeIntervalSince(lastTime) >= dynamicLoggingInterval else { 
+                print("⏰ Not enough time passed: \(Int(Date().timeIntervalSince(lastTime)))s < \(Int(dynamicLoggingInterval))s (velocity: \(String(format: "%.1f", currentVelocity)) m/s)")
+                return false 
+            }
         }
         
         // Check distance from last saved location
@@ -150,6 +176,43 @@ class LocationManager: NSObject, ObservableObject {
         }
         
         return true
+    }
+    
+    private func updateVelocityAndLoggingInterval(_ location: CLLocation) {
+        // Calculate velocity if we have a previous location
+        if let lastLocation = lastLocationForVelocity {
+            let timeInterval = location.timestamp.timeIntervalSince(lastLocation.timestamp)
+            let distance = location.distance(from: lastLocation)
+            
+            if timeInterval > 0 {
+                currentVelocity = distance / timeInterval
+                
+                // Update logging interval based on velocity
+                let previousInterval = dynamicLoggingInterval
+                
+                if currentVelocity >= highSpeedThreshold {
+                    dynamicLoggingInterval = highSpeedInterval
+                    print("🚗 High speed detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(highSpeedInterval))s")
+                } else if currentVelocity >= mediumSpeedThreshold {
+                    dynamicLoggingInterval = mediumSpeedInterval
+                    print("🚶 Medium speed detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(mediumSpeedInterval))s")
+                } else if currentVelocity >= lowSpeedThreshold {
+                    dynamicLoggingInterval = lowSpeedInterval
+                    print("🐌 Low speed detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(lowSpeedInterval))s")
+                } else {
+                    dynamicLoggingInterval = stationaryInterval
+                    print("🛑 Stationary detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(stationaryInterval))s")
+                }
+                
+                // Log when interval changes
+                if previousInterval != dynamicLoggingInterval {
+                    print("🔄 Logging interval changed from \(Int(previousInterval))s to \(Int(dynamicLoggingInterval))s")
+                }
+            }
+        }
+        
+        // Update the location for next velocity calculation
+        lastLocationForVelocity = location
     }
     
     private func saveLocation(_ location: CLLocation) {
@@ -257,6 +320,38 @@ class LocationManager: NSObject, ObservableObject {
     
     func getLowPowerModeStatus() -> Bool {
         return ProcessInfo.processInfo.isLowPowerModeEnabled
+    }
+    
+    func getCurrentVelocity() -> CLLocationSpeed {
+        return currentVelocity
+    }
+    
+    func getCurrentLoggingInterval() -> TimeInterval {
+        return dynamicLoggingInterval
+    }
+    
+    func getVelocityBasedLoggingInfo() -> String {
+        let speedKmh = currentVelocity * 3.6
+        let intervalMinutes = dynamicLoggingInterval / 60
+        
+        var speedCategory = "Unknown"
+        if currentVelocity >= highSpeedThreshold {
+            speedCategory = "High Speed (≥36 km/h)"
+        } else if currentVelocity >= mediumSpeedThreshold {
+            speedCategory = "Medium Speed (≥11 km/h)"
+        } else if currentVelocity >= lowSpeedThreshold {
+            speedCategory = "Low Speed (≥1.8 km/h)"
+        } else {
+            speedCategory = "Stationary (<1.8 km/h)"
+        }
+        
+        return """
+        Velocity-Based Logging Status:
+        🚗 Current Speed: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", speedKmh)) km/h)
+        📊 Speed Category: \(speedCategory)
+        ⏰ Logging Interval: \(Int(dynamicLoggingInterval))s (\(String(format: "%.1f", intervalMinutes)) min)
+        📍 Last Update: \(lastLocationUpdate?.formatted() ?? "Never")
+        """
     }
     
     func getBackgroundTrackingStatus() -> String {

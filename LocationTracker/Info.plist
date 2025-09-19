@@ -25,15 +25,5 @@
 	<array>
 		<string>location</string>
 	</array>
-	<key>CFBundleDisplayName</key>
-	<string>Kids.Fun.LocationTracker</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs location access to track your location history and provide location-based features. Location data is stored locally on your device and never shared.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs location access to track your location history and provide location-based features. Location data is stored locally on your device and never shared.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs location access to track your location history and provide location-based features. Location data is stored locally on your device and never shared.</string>
-	<key>NSLocationUsageDescription</key>
-	<string>This app needs location access to track your location history and provide location-based features. Location data is stored locally on your device and never shared.</string>
 </dict>
 </plist>
