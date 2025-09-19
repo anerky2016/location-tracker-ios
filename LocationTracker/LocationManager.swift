@@ -25,15 +25,17 @@ class LocationManager: NSObject, ObservableObject {
     private var currentVelocity: CLLocationSpeed = 0 // m/s
     private var dynamicLoggingInterval: TimeInterval = 300 // Start with 5 minutes
     
-    // Speed thresholds for different logging frequencies
-    private let highSpeedThreshold: CLLocationSpeed = 10.0 // m/s (36 km/h) - highway speed
-    private let mediumSpeedThreshold: CLLocationSpeed = 3.0 // m/s (11 km/h) - walking speed
-    private let lowSpeedThreshold: CLLocationSpeed = 0.5 // m/s (1.8 km/h) - very slow movement
+    // Speed thresholds for different logging frequencies (converted from km/h to m/s)
+    private let drivingThreshold: CLLocationSpeed = 2.5 // m/s (9 km/h) - driving speed
+    private let highSpeedThreshold: CLLocationSpeed = 0.83 // m/s (3 km/h) - high speed movement
+    private let mediumSpeedThreshold: CLLocationSpeed = 0.5 // m/s (1.8 km/h) - medium speed movement
+    private let lowSpeedThreshold: CLLocationSpeed = 0.083 // m/s (0.3 km/h) - low speed movement
     
     // Logging intervals based on speed
-    private let highSpeedInterval: TimeInterval = 30 // 30 seconds for high speed
-    private let mediumSpeedInterval: TimeInterval = 120 // 2 minutes for medium speed
-    private let lowSpeedInterval: TimeInterval = 300 // 5 minutes for low speed
+    private let drivingInterval: TimeInterval = 5 // 5 seconds for driving
+    private let highSpeedInterval: TimeInterval = 10 // 10 seconds for high speed
+    private let mediumSpeedInterval: TimeInterval = 30 // 30 seconds for medium speed
+    private let lowSpeedInterval: TimeInterval = 60 // 1 minute for low speed
     private let stationaryInterval: TimeInterval = 600 // 10 minutes when stationary
     
     override init() {
@@ -140,10 +142,11 @@ class LocationManager: NSObject, ObservableObject {
         print("🎯 Accuracy: \(locationManager.desiredAccuracy)")
         print("📏 Distance filter: \(locationManager.distanceFilter)")
         print("⏰ Dynamic logging intervals:")
-        print("   🚗 High speed (≥36 km/h): Every \(Int(highSpeedInterval))s")
-        print("   🚶 Medium speed (≥11 km/h): Every \(Int(mediumSpeedInterval))s")
-        print("   🐌 Low speed (≥1.8 km/h): Every \(Int(lowSpeedInterval))s")
-        print("   🛑 Stationary (<1.8 km/h): Every \(Int(stationaryInterval))s")
+        print("   🚗 Driving (≥9 km/h): Every \(Int(drivingInterval))s")
+        print("   🏃 High speed (3-9 km/h): Every \(Int(highSpeedInterval))s")
+        print("   🚶 Medium speed (1.8-3 km/h): Every \(Int(mediumSpeedInterval))s")
+        print("   🐌 Low speed (0.3-1.8 km/h): Every \(Int(lowSpeedInterval))s")
+        print("   🛑 Stationary (<0.3 km/h): Every \(Int(stationaryInterval))s")
         print("📐 Distance threshold: \(significantLocationChangeThreshold) meters")
     }
     
@@ -190,9 +193,12 @@ class LocationManager: NSObject, ObservableObject {
                 // Update logging interval based on velocity
                 let previousInterval = dynamicLoggingInterval
                 
-                if currentVelocity >= highSpeedThreshold {
+                if currentVelocity >= drivingThreshold {
+                    dynamicLoggingInterval = drivingInterval
+                    print("🚗 Driving detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(drivingInterval))s")
+                } else if currentVelocity >= highSpeedThreshold {
                     dynamicLoggingInterval = highSpeedInterval
-                    print("🚗 High speed detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(highSpeedInterval))s")
+                    print("🏃 High speed detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(highSpeedInterval))s")
                 } else if currentVelocity >= mediumSpeedThreshold {
                     dynamicLoggingInterval = mediumSpeedInterval
                     print("🚶 Medium speed detected: \(String(format: "%.1f", currentVelocity)) m/s (\(String(format: "%.1f", currentVelocity * 3.6)) km/h) - logging every \(Int(mediumSpeedInterval))s")
@@ -335,14 +341,16 @@ class LocationManager: NSObject, ObservableObject {
         let intervalMinutes = dynamicLoggingInterval / 60
         
         var speedCategory = "Unknown"
-        if currentVelocity >= highSpeedThreshold {
-            speedCategory = "High Speed (≥36 km/h)"
+        if currentVelocity >= drivingThreshold {
+            speedCategory = "Driving (≥9 km/h)"
+        } else if currentVelocity >= highSpeedThreshold {
+            speedCategory = "High Speed (3-9 km/h)"
         } else if currentVelocity >= mediumSpeedThreshold {
-            speedCategory = "Medium Speed (≥11 km/h)"
+            speedCategory = "Medium Speed (1.8-3 km/h)"
         } else if currentVelocity >= lowSpeedThreshold {
-            speedCategory = "Low Speed (≥1.8 km/h)"
+            speedCategory = "Low Speed (0.3-1.8 km/h)"
         } else {
-            speedCategory = "Stationary (<1.8 km/h)"
+            speedCategory = "Stationary (<0.3 km/h)"
         }
         
         return """

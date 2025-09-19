@@ -29,6 +29,13 @@ class LocationHistoryViewController: UIViewController {
     private var filteredHistory: [Location] = []
     private var isShowingMap = false
     
+    // Infinite scroll properties
+    private var isLoadingMore = false
+    private var hasMoreData = true
+    
+    // Expandable rows properties
+    private var expandedRows: Set<Int> = []
+    
     // Time Machine properties - using lightweight structs
     private var timeMachineLocations: [TimeMachineLocation] = []
     private var currentLocationIndex = 0
@@ -92,6 +99,15 @@ class LocationHistoryViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "LocationCell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "LoadingCell")
+        
+        // Set row height to accommodate detailed information
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 80
+        
+        // Remove separator lines for cleaner look
+        tableView.separatorStyle = .singleLine
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
     }
     
     private func setupMapView() {
@@ -104,6 +120,14 @@ class LocationHistoryViewController: UIViewController {
         paginatedManager.resetPagination()
         loadedLocations = paginatedManager.loadNextPage()
         filteredHistory = loadedLocations
+        
+        // Reset infinite scroll state
+        isLoadingMore = false
+        hasMoreData = paginatedManager.hasMorePages
+        
+        // Reset expanded rows when loading new data
+        expandedRows.removeAll()
+        
         updateStats()
         
         DispatchQueue.main.async {
@@ -112,6 +136,48 @@ class LocationHistoryViewController: UIViewController {
         }
         
         print("📊 Memory-optimized loading: \(loadedLocations.count) locations loaded (page 1)")
+    }
+    
+    private func loadMoreLocations() {
+        guard !isLoadingMore && hasMoreData else { return }
+        
+        isLoadingMore = true
+        print("🔄 Loading more locations...")
+        
+        // Load next page in background
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            
+            let newLocations = self.paginatedManager.loadNextPage()
+            
+            DispatchQueue.main.async {
+                if !newLocations.isEmpty {
+                    // Append new locations to existing data
+                    self.loadedLocations.append(contentsOf: newLocations)
+                    self.filteredHistory.append(contentsOf: newLocations)
+                    
+                    // Update infinite scroll state
+                    self.hasMoreData = self.paginatedManager.hasMorePages
+                    self.isLoadingMore = false
+                    
+                    // Reload table view with animation
+                    let startIndex = self.loadedLocations.count - newLocations.count
+                    let endIndex = self.loadedLocations.count - 1
+                    let indexPaths = (startIndex...endIndex).map { IndexPath(row: $0, section: 0) }
+                    
+                    self.tableView.insertRows(at: indexPaths, with: .fade)
+                    self.updateStats()
+                    self.updateMapWithHistory()
+                    
+                    print("✅ Loaded \(newLocations.count) more locations. Total: \(self.loadedLocations.count)")
+                } else {
+                    // No more data available
+                    self.hasMoreData = false
+                    self.isLoadingMore = false
+                    print("📄 No more locations to load")
+                }
+            }
+        }
     }
     
     private func updateStats() {
@@ -244,20 +310,143 @@ class LocationHistoryViewController: UIViewController {
 // MARK: - UITableViewDataSource
 extension LocationHistoryViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredHistory.count
+        // Add 1 for loading cell if we're loading more data
+        return filteredHistory.count + (isLoadingMore ? 1 : 0)
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // Show loading cell if this is the last row and we're loading more data
+        if isLoadingMore && indexPath.row == filteredHistory.count {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "LoadingCell", for: indexPath)
+            cell.textLabel?.text = "Loading more locations..."
+            cell.textLabel?.textColor = .systemBlue
+            cell.textLabel?.textAlignment = .center
+            cell.detailTextLabel?.text = nil
+            cell.accessoryType = .none
+            
+            // Add activity indicator
+            let activityIndicator = UIActivityIndicatorView(style: .medium)
+            activityIndicator.startAnimating()
+            cell.accessoryView = activityIndicator
+            
+            return cell
+        }
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "LocationCell", for: indexPath)
         let location = filteredHistory[indexPath.row]
+        let isExpanded = expandedRows.contains(indexPath.row)
         
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .medium
+        // Clear previous content
+        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
         
-        cell.textLabel?.text = String(format: "%.6f, %.6f", location.latitude, location.longitude)
-        cell.detailTextLabel?.text = formatter.string(from: location.timestamp ?? Date())
-        cell.accessoryType = .disclosureIndicator
+        // Format date and time
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm:ss"
+        
+        let dateFormatterShort = DateFormatter()
+        dateFormatterShort.dateFormat = "MMM dd, yyyy"
+        
+        let timestamp = location.timestamp ?? Date()
+        let dateString = dateFormatterShort.string(from: timestamp)
+        let timeString = timeFormatter.string(from: timestamp)
+        
+        // Create main container view
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        cell.contentView.addSubview(containerView)
+        
+        // Main title label
+        let titleLabel = UILabel()
+        titleLabel.text = "\(dateString) at \(timeString)"
+        titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        titleLabel.textColor = .label
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(titleLabel)
+        
+        // Basic info label
+        let basicInfoLabel = UILabel()
+        let coordinateString = String(format: "%.6f, %.6f", location.latitude, location.longitude)
+        let accuracyString = String(format: "±%.0fm", location.horizontalAccuracy)
+        let speedString = location.speed > 0 ? String(format: "%.1f m/s", location.speed) : "Stationary"
+        let altitudeString = String(format: "%.0fm", location.altitude)
+        
+        basicInfoLabel.text = "📍 \(coordinateString) • \(accuracyString) • \(speedString) • \(altitudeString)"
+        basicInfoLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        basicInfoLabel.textColor = .secondaryLabel
+        basicInfoLabel.numberOfLines = 2
+        basicInfoLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(basicInfoLabel)
+        
+        // Expand/collapse indicator
+        let indicatorLabel = UILabel()
+        indicatorLabel.text = isExpanded ? "▼" : "▶"
+        indicatorLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        indicatorLabel.textColor = .systemBlue
+        indicatorLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(indicatorLabel)
+        
+        // Set up constraints for basic layout
+        NSLayoutConstraint.activate([
+            containerView.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 12),
+            containerView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
+            containerView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
+            containerView.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -12),
+            
+            titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: indicatorLabel.leadingAnchor, constant: -8),
+            
+            basicInfoLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            basicInfoLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            basicInfoLabel.trailingAnchor.constraint(equalTo: indicatorLabel.leadingAnchor, constant: -8),
+            
+            indicatorLabel.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            indicatorLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            indicatorLabel.widthAnchor.constraint(equalToConstant: 20)
+        ])
+        
+        // Add detailed information if expanded
+        if isExpanded {
+            let detailsLabel = UILabel()
+            detailsLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+            detailsLabel.textColor = .tertiaryLabel
+            detailsLabel.numberOfLines = 0
+            detailsLabel.translatesAutoresizingMaskIntoConstraints = false
+            
+            // Create detailed information
+            let courseString = String(format: "%.1f°", location.course)
+            let courseAccuracyString = String(format: "±%.1f°", location.courseAccuracy)
+            let speedAccuracyString = String(format: "±%.1f m/s", location.speedAccuracy)
+            let verticalAccuracyString = String(format: "±%.0fm", location.verticalAccuracy)
+            
+            let detailsText = """
+            📍 Coordinates: \(coordinateString)
+            🎯 Horizontal Accuracy: \(accuracyString)
+            📏 Vertical Accuracy: \(verticalAccuracyString)
+            🚗 Speed: \(speedString) (\(speedAccuracyString))
+            🧭 Course: \(courseString) (\(courseAccuracyString))
+            ⛰️ Altitude: \(altitudeString)
+            🕐 Timestamp: \(DateFormatter.localizedString(from: timestamp, dateStyle: .full, timeStyle: .full))
+            """
+            
+            detailsLabel.text = detailsText
+            containerView.addSubview(detailsLabel)
+            
+            // Update constraints to include details
+            NSLayoutConstraint.activate([
+                detailsLabel.topAnchor.constraint(equalTo: basicInfoLabel.bottomAnchor, constant: 8),
+                detailsLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                detailsLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                detailsLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+            ])
+        } else {
+            // Set bottom constraint for basic info when not expanded
+            basicInfoLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
+        }
+        
+        // Remove any previous accessory views
+        cell.accessoryType = .none
+        cell.accessoryView = nil
         
         return cell
     }
@@ -268,41 +457,39 @@ extension LocationHistoryViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let location = filteredHistory[indexPath.row]
-        showLocationDetails(location)
+        // Don't allow selection of loading cell
+        if isLoadingMore && indexPath.row == filteredHistory.count {
+            return
+        }
+        
+        // Toggle expanded state
+        let rowIndex = indexPath.row
+        if expandedRows.contains(rowIndex) {
+            expandedRows.remove(rowIndex)
+        } else {
+            expandedRows.insert(rowIndex)
+        }
+        
+        // Animate the row height change
+        tableView.beginUpdates()
+        tableView.endUpdates()
+        
+        // Scroll to keep the expanded row visible
+        tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
     }
     
-    private func showLocationDetails(_ location: Location) {
-        let alert = UIAlertController(
-            title: "Location Details",
-            message: String(format: """
-            Latitude: %.6f
-            Longitude: %.6f
-            Altitude: %.2f m
-            Accuracy: %.2f m
-            Speed: %.2f m/s
-            Course: %.2f°
-            Time: %@
-            """,
-            location.latitude,
-            location.longitude,
-            location.altitude,
-            location.horizontalAccuracy,
-            location.speed,
-            location.course,
-            DateFormatter.localizedString(from: location.timestamp ?? Date(), dateStyle: .full, timeStyle: .full)
-            ),
-            preferredStyle: .alert
-        )
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // Check if user has scrolled near the bottom
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let height = scrollView.frame.size.height
         
-        alert.addAction(UIAlertAction(title: "Show on Map", style: .default) { [weak self] _ in
-            self?.showLocationOnMap(location)
-        })
-        
-        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
-        
-        present(alert, animated: true)
+        // Trigger infinite scroll when user is 100 points from the bottom
+        if offsetY > contentHeight - height - 100 {
+            loadMoreLocations()
+        }
     }
+    
     
     private func showLocationOnMap(_ location: Location) {
         segmentedControl.selectedSegmentIndex = 1
