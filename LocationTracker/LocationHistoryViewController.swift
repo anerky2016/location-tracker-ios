@@ -69,22 +69,19 @@ class LocationHistoryViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Location History"
+        title = "📊 Location History"
         
-        // Setup navigation bar
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "Filter",
-            style: .plain,
-            target: self,
-            action: #selector(showFilterOptions)
-        )
+        // Setup modern navigation bar
+        setupModernNavigationBar()
         
-        // Setup segmented control
-        segmentedControl.setTitle("List", forSegmentAt: 0)
-        segmentedControl.setTitle("Map", forSegmentAt: 1)
-        segmentedControl.setTitle("🕰️ Time Machine", forSegmentAt: 2)
-        segmentedControl.selectedSegmentIndex = 0
-        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        // Setup modern segmented control
+        setupModernSegmentedControl()
+        
+        // Setup modern table view
+        setupModernTableView()
+        
+        // Setup modern map view
+        setupModernMapView()
         
         // Initially hide map and time machine
         mapView.isHidden = true
@@ -93,6 +90,81 @@ class LocationHistoryViewController: UIViewController {
         setupTimeMachineUI()
         
         updateStats()
+    }
+    
+    private func setupModernNavigationBar() {
+        // Modern navigation bar styling
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        
+        // Modern filter button with SF Symbol
+        let filterButton = UIBarButtonItem(
+            image: UIImage(systemName: "line.3.horizontal.decrease.circle.fill"),
+            style: .plain,
+            target: self,
+            action: #selector(showFilterOptions)
+        )
+        filterButton.tintColor = .systemBlue
+        navigationItem.rightBarButtonItem = filterButton
+    }
+    
+    private func setupModernSegmentedControl() {
+        // Modern segmented control styling
+        segmentedControl.setTitle("📋 List", forSegmentAt: 0)
+        segmentedControl.setTitle("🗺️ Map", forSegmentAt: 1)
+        segmentedControl.setTitle("🕰️ Time Machine", forSegmentAt: 2)
+        segmentedControl.selectedSegmentIndex = 0
+        segmentedControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        
+        // Modern styling
+        segmentedControl.backgroundColor = UIColor.systemGray6
+        segmentedControl.selectedSegmentTintColor = UIColor.systemBlue
+        segmentedControl.setTitleTextAttributes([
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 16, weight: .medium)
+        ], for: .normal)
+        segmentedControl.setTitleTextAttributes([
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 16, weight: .semibold)
+        ], for: .selected)
+        
+        // Add corner radius and shadow
+        segmentedControl.layer.cornerRadius = 12
+        segmentedControl.layer.shadowColor = UIColor.black.cgColor
+        segmentedControl.layer.shadowOffset = CGSize(width: 0, height: 2)
+        segmentedControl.layer.shadowRadius = 4
+        segmentedControl.layer.shadowOpacity = 0.1
+    }
+    
+    private func setupModernTableView() {
+        // Modern table view styling
+        tableView.backgroundColor = UIColor.systemGroupedBackground
+        tableView.separatorStyle = .none
+        tableView.showsVerticalScrollIndicator = false
+        
+        // Add subtle shadow
+        tableView.layer.shadowColor = UIColor.black.cgColor
+        tableView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        tableView.layer.shadowRadius = 8
+        tableView.layer.shadowOpacity = 0.05
+    }
+    
+    private func setupModernMapView() {
+        // Modern map view styling
+        mapView.layer.cornerRadius = 16
+        mapView.layer.shadowColor = UIColor.black.cgColor
+        mapView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        mapView.layer.shadowRadius = 12
+        mapView.layer.shadowOpacity = 0.15
+        
+        // Modern map features
+        mapView.showsCompass = true
+        mapView.showsScale = true
+        mapView.showsBuildings = true
+        mapView.showsTraffic = false
     }
     
     private func setupTableView() {
@@ -350,9 +422,15 @@ extension LocationHistoryViewController: UITableViewDataSource {
         let dateString = dateFormatterShort.string(from: timestamp)
         let timeString = timeFormatter.string(from: timestamp)
         
-        // Create main container view
+        // Create main container view with modern styling
         let containerView = UIView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.backgroundColor = UIColor.systemBackground
+        containerView.layer.cornerRadius = 12
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        containerView.layer.shadowRadius = 4
+        containerView.layer.shadowOpacity = 0.08
         cell.contentView.addSubview(containerView)
         
         // Main title label
@@ -385,12 +463,12 @@ extension LocationHistoryViewController: UITableViewDataSource {
         indicatorLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(indicatorLabel)
         
-        // Set up constraints for basic layout
+        // Set up constraints for modern layout with proper spacing
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 12),
+            containerView.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 8),
             containerView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16),
             containerView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
-            containerView.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -12),
+            containerView.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -8),
             
             titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
@@ -407,13 +485,20 @@ extension LocationHistoryViewController: UITableViewDataSource {
         
         // Add detailed information if expanded
         if isExpanded {
+            // Create modern details container
+            let detailsContainer = UIView()
+            detailsContainer.backgroundColor = UIColor.systemGray6
+            detailsContainer.layer.cornerRadius = 8
+            detailsContainer.translatesAutoresizingMaskIntoConstraints = false
+            containerView.addSubview(detailsContainer)
+            
             let detailsLabel = UILabel()
             detailsLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
-            detailsLabel.textColor = .tertiaryLabel
+            detailsLabel.textColor = .secondaryLabel
             detailsLabel.numberOfLines = 0
             detailsLabel.translatesAutoresizingMaskIntoConstraints = false
             
-            // Create detailed information
+            // Create detailed information with modern formatting
             let courseString = String(format: "%.1f°", location.course)
             let courseAccuracyString = String(format: "±%.1f°", location.courseAccuracy)
             let speedAccuracyString = String(format: "±%.1f m/s", location.speedAccuracy)
@@ -430,14 +515,19 @@ extension LocationHistoryViewController: UITableViewDataSource {
             """
             
             detailsLabel.text = detailsText
-            containerView.addSubview(detailsLabel)
+            detailsContainer.addSubview(detailsLabel)
             
-            // Update constraints to include details
+            // Update constraints to include modern details container
             NSLayoutConstraint.activate([
-                detailsLabel.topAnchor.constraint(equalTo: basicInfoLabel.bottomAnchor, constant: 8),
-                detailsLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-                detailsLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-                detailsLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+                detailsContainer.topAnchor.constraint(equalTo: basicInfoLabel.bottomAnchor, constant: 12),
+                detailsContainer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 12),
+                detailsContainer.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -12),
+                detailsContainer.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -12),
+                
+                detailsLabel.topAnchor.constraint(equalTo: detailsContainer.topAnchor, constant: 12),
+                detailsLabel.leadingAnchor.constraint(equalTo: detailsContainer.leadingAnchor, constant: 12),
+                detailsLabel.trailingAnchor.constraint(equalTo: detailsContainer.trailingAnchor, constant: -12),
+                detailsLabel.bottomAnchor.constraint(equalTo: detailsContainer.bottomAnchor, constant: -12)
             ])
         } else {
             // Set bottom constraint for basic info when not expanded
@@ -462,6 +552,10 @@ extension LocationHistoryViewController: UITableViewDelegate {
             return
         }
         
+        // Add haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        
         // Toggle expanded state
         let rowIndex = indexPath.row
         if expandedRows.contains(rowIndex) {
@@ -470,9 +564,11 @@ extension LocationHistoryViewController: UITableViewDelegate {
             expandedRows.insert(rowIndex)
         }
         
-        // Animate the row height change
-        tableView.beginUpdates()
-        tableView.endUpdates()
+        // Animate the row height change with modern spring animation
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2, options: [.curveEaseInOut], animations: {
+            tableView.beginUpdates()
+            tableView.endUpdates()
+        })
         
         // Scroll to keep the expanded row visible
         tableView.scrollToRow(at: indexPath, at: .middle, animated: true)

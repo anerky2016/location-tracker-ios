@@ -44,25 +44,122 @@ class LocationTrackerViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Location Tracker"
+        title = "📍 Location Tracker"
         
-        // Setup navigation bar
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "Settings",
+        // Setup modern navigation bar
+        setupModernNavigationBar()
+        
+        // Setup modern buttons with enhanced styling
+        setupModernButtons()
+        
+        // Setup modern labels with better typography
+        setupModernLabels()
+        
+        // Setup modern map view
+        setupModernMapView()
+        
+        // Setup modern status indicators
+        updateBatteryStatus()
+    }
+    
+    private func setupModernNavigationBar() {
+        // Modern navigation bar styling
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        
+        // Modern settings button with SF Symbol
+        let settingsButton = UIBarButtonItem(
+            image: UIImage(systemName: "gearshape.fill"),
             style: .plain,
             target: self,
             action: #selector(showSettings)
         )
+        settingsButton.tintColor = .systemBlue
+        navigationItem.rightBarButtonItem = settingsButton
+    }
+    
+    private func setupModernButtons() {
+        // Modern toggle button with gradient and shadow
+        toggleButton.layer.cornerRadius = 16
+        toggleButton.layer.shadowColor = UIColor.black.cgColor
+        toggleButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        toggleButton.layer.shadowRadius = 8
+        toggleButton.layer.shadowOpacity = 0.15
+        toggleButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         
-        // Setup buttons
-        toggleButton.layer.cornerRadius = 8
-        historyButton.layer.cornerRadius = 8
+        // Modern history button with gradient and shadow
+        historyButton.layer.cornerRadius = 16
+        historyButton.layer.shadowColor = UIColor.black.cgColor
+        historyButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        historyButton.layer.shadowRadius = 8
+        historyButton.layer.shadowOpacity = 0.15
+        historyButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         
-        // Setup labels
+        // Add subtle gradient backgrounds
+        addGradientToButton(toggleButton, colors: [UIColor.systemBlue.cgColor, UIColor.systemBlue.withAlphaComponent(0.8).cgColor])
+        addGradientToButton(historyButton, colors: [UIColor.systemGreen.cgColor, UIColor.systemGreen.withAlphaComponent(0.8).cgColor])
+    }
+    
+    private func addGradientToButton(_ button: UIButton, colors: [CGColor]) {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = colors
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.cornerRadius = 16
+        gradientLayer.frame = button.bounds
+        
+        // Insert gradient at the bottom of the button's layer stack
+        button.layer.insertSublayer(gradientLayer, at: 0)
+        
+        // Ensure button content is above gradient
+        button.bringSubviewToFront(button.titleLabel!)
+    }
+    
+    private func setupModernLabels() {
+        // Modern status label with better typography
+        statusLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        statusLabel.textAlignment = .center
+        statusLabel.numberOfLines = 0
+        
+        // Modern location labels with better spacing
+        currentLocationLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        currentLocationLabel.textAlignment = .center
+        currentLocationLabel.numberOfLines = 0
+        currentLocationLabel.textColor = .secondaryLabel
+        
+        lastUpdateLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        lastUpdateLabel.textAlignment = .center
+        lastUpdateLabel.numberOfLines = 0
+        lastUpdateLabel.textColor = .secondaryLabel
+        
+        batteryOptimizationLabel.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        batteryOptimizationLabel.textAlignment = .center
+        batteryOptimizationLabel.numberOfLines = 0
+        
+        // Set initial text
         statusLabel.text = "Initializing..."
         currentLocationLabel.text = "Current Location: Not available"
         lastUpdateLabel.text = "Last Update: Never"
-        updateBatteryStatus()
+    }
+    
+    private func setupModernMapView() {
+        // Modern map view styling
+        mapView.layer.cornerRadius = 16
+        mapView.layer.shadowColor = UIColor.black.cgColor
+        mapView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        mapView.layer.shadowRadius = 12
+        mapView.layer.shadowOpacity = 0.15
+        
+        // Modern map type
+        mapView.mapType = .standard
+        mapView.showsUserLocation = true
+        mapView.showsCompass = true
+        mapView.showsScale = true
+        mapView.showsTraffic = false
+        mapView.showsBuildings = true
     }
     
     private func setupMapView() {
@@ -123,16 +220,32 @@ class LocationTrackerViewController: UIViewController {
     
     private func updateTrackingStatus(_ isTracking: Bool) {
         if isTracking {
-            statusLabel.text = "Status: Tracking Active"
+            statusLabel.text = "🟢 Status: Tracking Active"
             statusLabel.textColor = .systemGreen
-            toggleButton.setTitle("Stop Tracking", for: .normal)
-            toggleButton.backgroundColor = .systemRed
+            toggleButton.setTitle("⏹️ Stop Tracking", for: .normal)
+            updateButtonGradient(toggleButton, colors: [UIColor.systemRed.cgColor, UIColor.systemRed.withAlphaComponent(0.8).cgColor])
         } else {
-            statusLabel.text = "Status: Tracking Stopped"
+            statusLabel.text = "🔴 Status: Tracking Stopped"
             statusLabel.textColor = .systemRed
-            toggleButton.setTitle("Start Tracking", for: .normal)
-            toggleButton.backgroundColor = .systemBlue
+            toggleButton.setTitle("▶️ Start Tracking", for: .normal)
+            updateButtonGradient(toggleButton, colors: [UIColor.systemBlue.cgColor, UIColor.systemBlue.withAlphaComponent(0.8).cgColor])
         }
+    }
+    
+    private func updateButtonGradient(_ button: UIButton, colors: [CGColor]) {
+        // Remove existing gradient layers
+        button.layer.sublayers?.removeAll { $0 is CAGradientLayer }
+        
+        // Add new gradient
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = colors
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.cornerRadius = 16
+        gradientLayer.frame = button.bounds
+        
+        button.layer.insertSublayer(gradientLayer, at: 0)
+        button.bringSubviewToFront(button.titleLabel!)
     }
     
     private func updateCurrentLocation(_ location: CLLocation?) {
@@ -203,6 +316,19 @@ class LocationTrackerViewController: UIViewController {
     }
     
     @IBAction func toggleTracking(_ sender: UIButton) {
+        // Add haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
+        
+        // Add button press animation
+        UIView.animate(withDuration: 0.1, animations: {
+            sender.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                sender.transform = CGAffineTransform.identity
+            }
+        }
+        
         if locationManager.isTracking {
             locationManager.stopTracking()
         } else {
